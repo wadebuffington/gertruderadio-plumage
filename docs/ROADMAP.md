@@ -32,15 +32,15 @@ watch the visuals move, operate everything from the keyboard, and read the About
 - [x] Contrast check on our skin (built into the skin generator; the build stops if a pair fails AA).
 - [x] Eddie tries it and signs off on the look.
 
-## Milestone 3 — Offline renderer (first cut) (CURRENT)
+## Milestone 3 — Offline renderer (first cut) (DONE)
 
 - [x] Render one track + visuals to a video file, frame-perfect, no screen capture (WebCodecs, Chromium first).
       *MP4 (H.264 + AAC) where the browser can encode it — Chrome/Edge on Mac and Windows — otherwise WebM.*
 - [x] Choose aspect ratio (16:9 / 9:16 / 1:1), at 720p or 1080p.
 - [x] Progress display and cancel.
-- [ ] Eddie renders one of his own tracks and checks it plays (and uploads) where he wants it.
+- [x] Eddie renders one of his own tracks and checks it plays. *(3:49 song → 1920×1080 MP4, H.264 + AAC stereo, 237 MB, played through.)*
 
-## Milestone 4 — Shaped surface (experiment)
+## Milestone 4 — Shaped surface (experiment) (NEXT)
 
 - [ ] Prototype a non-rectangular player outline driving the same controls, starting from Eddie's chosen cardinal concepts A ("Flight Form") and D — see `docs/design/README.md`.
 - [ ] Answer the "how is a shape defined?" open question with something that works.
