@@ -23,20 +23,22 @@ watch the visuals move, operate everything from the keyboard, and read the About
 
 *Built 2026-10-12; waiting on Eddie to try it before Milestone 2 starts.*
 
-## Milestone 2 — A Redbird skin (CURRENT)
+## Milestone 2 — A Redbird skin (DONE)
 
 - [x] One original Redbird classic skin (our own artwork, no copied assets). *First version drawn in code
       (`tools/redbird-skin/build.py`); Eddie's artwork can replace it later.*
 - [x] Skin switcher (default ↔ Redbird) plus "load a skin file" from the user's device.
 - [x] Link out to the Webamp skin museum.
 - [x] Contrast check on our skin (built into the skin generator; the build stops if a pair fails AA).
-- [ ] Eddie tries it and signs off on the look.
+- [x] Eddie tries it and signs off on the look.
 
-## Milestone 3 — Offline renderer (first cut)
+## Milestone 3 — Offline renderer (first cut) (CURRENT)
 
-- [ ] Render one track + visuals to a video file, frame-perfect, no screen capture (WebCodecs, Chromium first).
-- [ ] Choose aspect ratio (16:9 / 9:16 / 1:1).
-- [ ] Progress display and cancel.
+- [x] Render one track + visuals to a video file, frame-perfect, no screen capture (WebCodecs, Chromium first).
+      *MP4 (H.264 + AAC) where the browser can encode it — Chrome/Edge on Mac and Windows — otherwise WebM.*
+- [x] Choose aspect ratio (16:9 / 9:16 / 1:1), at 720p or 1080p.
+- [x] Progress display and cancel.
+- [ ] Eddie renders one of his own tracks and checks it plays (and uploads) where he wants it.
 
 ## Milestone 4 — Shaped surface (experiment)
 

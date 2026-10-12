@@ -122,6 +122,47 @@
         <p class="preset-credit">Preset: <span id="preset-credit"></span></p>
       </section>
 
+      <!-- Offline renderer: track + visuals to a video file, frame by frame. -->
+      <section class="panel render" aria-labelledby="render-heading">
+        <h2 id="render-heading" class="panel-title">Make a video</h2>
+        <p class="muted">
+          Turns the current track and the current visual into a video file, made frame by
+          frame on this computer. Nothing is uploaded. Works best in Chrome or Edge.
+        </p>
+        <p id="render-unsupported" class="notice" hidden>
+          This browser can't make videos yet. Please try a current version of Chrome or Edge.
+        </p>
+        <form id="render-form" class="render-form">
+          <fieldset class="shape-pick">
+            <legend>Shape</legend>
+            <label><input type="radio" name="shape" value="wide" checked /> Widescreen 16:9 <span class="muted small">(YouTube)</span></label>
+            <label><input type="radio" name="shape" value="tall" /> Tall 9:16 <span class="muted small">(Reels, Shorts, TikTok)</span></label>
+            <label><input type="radio" name="shape" value="square" /> Square 1:1</label>
+          </fieldset>
+          <div class="render-row">
+            <label class="render-size">
+              <span>Size</span>
+              <select id="render-lines">
+                <option value="720">720p (faster)</option>
+                <option value="1080">1080p (sharper)</option>
+              </select>
+            </label>
+            <button type="submit" id="render-start" class="btn btn-primary" disabled>Make video</button>
+          </div>
+          <p id="render-what" class="small muted">Open a track first.</p>
+        </form>
+        <div id="render-progress" class="render-progress" hidden>
+          <label for="render-bar" id="render-bar-label">Making your video…</label>
+          <progress id="render-bar" max="100" value="0"></progress>
+          <p id="render-detail" class="small"></p>
+          <button type="button" id="render-cancel" class="btn">Cancel</button>
+        </div>
+        <p id="render-done" class="render-done" hidden>
+          <a id="render-save" class="btn btn-primary" href="#" download>Save video</a>
+          <span id="render-done-detail" class="small muted"></span>
+        </p>
+      </section>
+
       </div>
 
       <div class="col col-side">
@@ -199,6 +240,10 @@
           butterchurn-presets collection (MIT License).
         </li>
         <li><strong>Justin Frankel and Nullsoft</strong> — inspiration only; not a code dependency.</li>
+        <li>
+          <strong>Mediabunny</strong> by Vanilagy — Mozilla Public License 2.0, for writing video files.
+          <a href="https://github.com/Vanilagy/mediabunny" target="_blank" rel="noopener noreferrer">Mediabunny source code<span class="visually-hidden"> (opens in a new tab)</span></a>
+        </li>
         <li><strong>Redbird skin</strong> — original artwork by Redbird for Gertrude Radio.</li>
       </ul>
       <p class="small">

@@ -51,7 +51,8 @@ export function createPlayer({ doubleSize = false } = {}) {
     const { trackOrder, currentTrack } = state.playlist;
     const tracks = trackOrder.map((id) => {
       const t = state.tracks[id];
-      return { id, name: trackName(t), duration: t.duration ?? null };
+      // `url` is a local object URL for files opened from this device.
+      return { id, name: trackName(t), duration: t.duration ?? null, url: t.url };
     });
     const currentIndex = currentTrack == null ? -1 : trackOrder.indexOf(currentTrack);
     const current = currentIndex >= 0 ? tracks[currentIndex] : null;

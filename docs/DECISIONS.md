@@ -72,3 +72,19 @@ Small decisions made during the build that the brief did not cover. Newest at th
   "Plumage - by Gertrude Radio" there instead (via Webamp's user-message slot), cleared as soon
   as music loads. Also: Cloudflare's first Milestone 2 deploy failed with an internal error on
   their side (build passed); "Retry deployment" fixed it.
+- 2026-10-12 — Milestone 3 (offline renderer):
+  - **How it works:** the whole track is decoded in the browser, then for each video frame
+    (30 per second) a private Butterchurn is handed exactly the 1024 audio samples ending at
+    that moment and a fixed 1/30 s time step, and its picture is encoded. No screen capture, so
+    frames are never dropped (tested: 15 s → exactly 450 frames). Live visuals pause during a
+    render to leave the graphics card to it, and resume after.
+  - **Video files are written by Mediabunny** (Vanilagy, MPL-2.0, used unmodified; notice in
+    THIRD-PARTY-LICENSES.txt and About). It's the maintained successor to mp4-muxer.
+  - **Format:** MP4 with H.264 + AAC when the browser can encode them (Chrome/Edge on Mac and
+    Windows), falling back to Opus audio, then to WebM (VP9 + Opus) — e.g. open-source Chromium
+    builds. Quality "high" preset; 30 fps; 720p (default, faster) or 1080p.
+  - **Uses the current track and the current preset.** Changing presets during a video, title
+    cards, and saved settings are Milestone "Later" (render recipes).
+  - **The finished file is held in memory** until saved (about 1 MB per second of 720p video).
+    Fine for songs; very long mixes may need streaming straight to disk later (Chrome can).
+  - Nothing is stamped on the video (hard rule 1).

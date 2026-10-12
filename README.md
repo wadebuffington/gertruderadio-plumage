@@ -58,7 +58,10 @@ The classic player's default skin is our own, drawn by a script. To change it, e
    volume sliders; the playlist is a real list of buttons.
 4. The classic player on the right is the same player — press pause there and the
    Player panel follows, and the other way round.
-5. **About** lists the credits.
+5. **Make a video:** pick a shape (16:9, 9:16 or 1:1) and size, press **Make video**, and
+   wait for the progress bar. Then press **Save video**. It uses the track and visual that
+   are currently selected, and everything happens on your computer.
+6. **About** lists the credits.
 
 If your computer is set to "reduce motion", the visuals start switched off
 (MilkDrop flashes); turn them on with the **Visuals** button.

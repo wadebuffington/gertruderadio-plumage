@@ -5,6 +5,7 @@ import { createControls } from "./controls.js";
 import { createVisuals } from "./visuals.js";
 import { setupFileOpening } from "./files.js";
 import { PRESETS } from "./presets.js";
+import { renderVideo, rendererSupported, frameSize, FPS } from "./renderer.js";
 
 const $ = (sel) => document.querySelector(sel);
 const messages = $("#messages");
@@ -176,6 +177,121 @@ function start() {
     if (document.fullscreenElement) document.exitFullscreen();
     else stage.requestFullscreen?.();
   });
+
+  // --- Make a video ------------------------------------------------------------
+  const renderForm = $("#render-form");
+  const renderStart = $("#render-start");
+  const renderWhat = $("#render-what");
+  const renderProgress = $("#render-progress");
+  const renderBar = $("#render-bar");
+  const renderDetail = $("#render-detail");
+  const renderDone = $("#render-done");
+  const renderSave = $("#render-save");
+  let renderJob = null; // AbortController while a render runs
+  let savedUrl = null;
+
+  const canRender = rendererSupported() && visuals.supported;
+  if (!canRender) {
+    $("#render-unsupported").hidden = false;
+    renderForm.hidden = true;
+  }
+  const renderChoice = () => {
+    const shape = renderForm.elements.shape.value;
+    const lines = Number($("#render-lines").value);
+    return { shape, lines, ...frameSize(shape, lines) };
+  };
+  function describeRender() {
+    if (renderJob) return;
+    const track = player.state.current;
+    renderStart.disabled = !canRender || !track;
+    if (!track) {
+      renderWhat.textContent = "Open a track first.";
+      return;
+    }
+    const { width, height } = renderChoice();
+    const preset = PRESETS[visuals.presetIndex].label;
+    renderWhat.textContent = `“${track.name}” with the “${preset}” visual, ${width} × ${height}.`;
+  }
+  player.subscribe((s, prev) => {
+    if (!prev || s.current?.id !== prev.current?.id || s.current?.name !== prev.current?.name) describeRender();
+  });
+  renderForm.addEventListener("change", describeRender);
+  presetSelect.addEventListener("change", describeRender);
+  $("#preset-prev").addEventListener("click", () => setTimeout(describeRender));
+  $("#preset-next").addEventListener("click", () => setTimeout(describeRender));
+  describeRender();
+
+  const minutes = (sec) => {
+    const m = Math.max(1, Math.round(sec / 60));
+    return `${m} minute${m === 1 ? "" : "s"}`;
+  };
+
+  renderForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const track = player.state.current;
+    if (!track || renderJob) return;
+    const { shape, lines, width, height } = renderChoice();
+    const presetIndex = visuals.presetIndex;
+
+    renderJob = new AbortController();
+    renderStart.disabled = true;
+    renderDone.hidden = true;
+    renderProgress.hidden = false;
+    renderBar.value = 0;
+    renderDetail.textContent = "Getting ready…";
+    $("#render-cancel").focus();
+    say(`Making a ${width} by ${height} video of ${track.name}. This can take a few minutes.`);
+    // Give the renderer the graphics card to itself; the live visuals resume after.
+    const liveWasOn = visuals.running;
+    visuals.stop();
+
+    const started = performance.now();
+    try {
+      const { blob, ext } = await renderVideo({
+        trackUrl: track.url,
+        loadPreset: async () => {
+          const mod = await PRESETS[presetIndex].load();
+          return mod.default ?? mod;
+        },
+        shape,
+        lines,
+        signal: renderJob.signal,
+        onProgress({ frame, frames }) {
+          const pct = Math.floor((frame / frames) * 100);
+          renderBar.value = pct;
+          const spent = (performance.now() - started) / 1000;
+          const left = frame > 30 ? (spent / frame) * (frames - frame) : null;
+          renderDetail.textContent =
+            `${pct}% · ${Math.round(frame / FPS)} of ${Math.round(frames / FPS)} seconds of video` +
+            (left != null ? ` · about ${minutes(left)} left` : "");
+        },
+      });
+      if (savedUrl) URL.revokeObjectURL(savedUrl);
+      savedUrl = URL.createObjectURL(blob);
+      const safeName = track.name.replace(/[\\/:*?"<>|]+/g, "-").slice(0, 80);
+      renderSave.href = savedUrl;
+      renderSave.download = `${safeName} - Plumage ${width}x${height}.${ext}`;
+      const mb = (blob.size / 1048576).toFixed(1);
+      $("#render-done-detail").textContent = `${ext.toUpperCase()}, ${width} × ${height}, ${mb} MB.`;
+      renderDone.hidden = false;
+      renderSave.focus();
+      say("Your video is ready. Press Save video to keep it.");
+    } catch (err) {
+      if (err.name === "AbortError") say("Video canceled.");
+      else {
+        console.error(err);
+        say(`Sorry, the video couldn't be made: ${err.message}`);
+      }
+    } finally {
+      renderJob = null;
+      renderProgress.hidden = true;
+      if (liveWasOn) visuals.start();
+      describeRender();
+      // Focus was on Cancel, which just disappeared: put it somewhere sensible.
+      if (renderDone.hidden) renderStart.focus();
+    }
+  });
+  $("#render-cancel").addEventListener("click", () => renderJob?.abort());
 
   // --- About ------------------------------------------------------------------
   const about = $("#about-dialog");
