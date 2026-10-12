@@ -68,3 +68,7 @@ Small decisions made during the build that the brief did not cover. Newest at th
   - **Eddie's A and D concepts are shaped skins, not classic ones.** The classic format is a fixed
     rectangle with fixed button spots, so A/D belong to Milestone 4. Art checklist for them:
     `docs/design/SHAPED-SKIN-ART.md`.
+- 2026-10-12 — With an empty playlist Webamp's display says "Winamp 2.91". We now show
+  "Plumage - by Gertrude Radio" there instead (via Webamp's user-message slot), cleared as soon
+  as music loads. Also: Cloudflare's first Milestone 2 deploy failed with an internal error on
+  their side (build passed); "Retry deployment" fixed it.

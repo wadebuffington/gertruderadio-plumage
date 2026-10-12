@@ -66,6 +66,20 @@ export function createPlayer({ doubleSize = false } = {}) {
     };
   }
 
+  // With an empty playlist Webamp's display reads "Winamp 2.91". Show our own
+  // name there instead, and step aside the moment there's music (or another
+  // message, like "Volume: 50%", that Webamp wants to show).
+  const IDLE_TEXT = "Plumage - by Gertrude Radio";
+  function keepIdleText() {
+    const state = webamp.store.getState();
+    const empty = state.playlist.trackOrder.length === 0;
+    const message = state.userInput.userMessage;
+    if (empty && message == null) webamp.store.dispatch({ type: "SET_USER_MESSAGE", message: IDLE_TEXT });
+    else if (!empty && message === IDLE_TEXT) webamp.store.dispatch({ type: "UNSET_USER_MESSAGE" });
+  }
+  keepIdleText();
+  webamp.store.subscribe(keepIdleText);
+
   // Webamp's store is Redux; subscribing to it is how Webamp's own UI stays
   // in sync, so it is the most reliable way for us to follow it too.
   webamp.store.subscribe(() => {
