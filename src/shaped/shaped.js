@@ -1,0 +1,501 @@
+// Shaped player: a skin whose outline is the artwork itself (see skins.js).
+// Every interactive part is a real control laid over the painted one — a
+// <button>, or an element with role="slider" — so it works with the keyboard
+// and is named for screen readers. The painted readouts are covered by live
+// screens the app draws. It drives the same player as everything else.
+import { formatTime } from "../controls.js";
+
+const LCD = "#ffa53a";
+const LCD_DIM = "rgba(255, 165, 58, 0.16)";
+const GLASS_TOP = "#3b0c0d";
+const GLASS_BOTTOM = "#170405";
+const MONO = 'ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+
+/** What each action does, and how its control describes itself. */
+function actions({ player, visuals, presets, openFiles, say }) {
+  const tell = (msg) => msg && say(msg);
+  const needsTracks = (s) => s.tracks.length > 0;
+  return {
+    togglePlay: { label: (s) => (s.status === "PLAYING" ? "Pause" : "Play"), run: () => player.togglePlay(), enabled: needsTracks },
+    stop: { label: () => "Stop", run: () => player.stop(), enabled: needsTracks },
+    previous: { label: () => "Previous track", run: () => tell(player.previous()), enabled: needsTracks },
+    next: { label: () => "Next track", run: () => tell(player.next()), enabled: needsTracks },
+    rewind: { label: () => "Rewind 10 seconds", run: () => player.skip(-10), enabled: needsTracks },
+    forward: { label: () => "Fast-forward 10 seconds", run: () => player.skip(10), enabled: needsTracks },
+    shuffle: { label: () => "Shuffle", pressed: (s) => s.shuffle, run: () => player.toggleShuffle() },
+    repeat: { label: () => "Repeat", pressed: (s) => s.repeat, run: () => player.toggleRepeat() },
+    open: { label: () => "Open files…", run: () => openFiles() },
+    nextPreset: { label: () => "Next visual preset", run: () => visuals.nextPreset() },
+
+    // Sliders and knobs: a range, a current value, and how to say it.
+    volume: {
+      label: () => "Volume", min: 0, max: 100, step: 5,
+      get: (s) => s.volume, set: (v) => player.setVolume(v), text: (v) => `${Math.round(v)} percent`,
+    },
+    balance: {
+      label: () => "Balance", min: -100, max: 100, step: 10,
+      get: (s) => s.balance, set: (v) => player.setBalance(v),
+      text: (v) => (Math.abs(v) < 1 ? "Centre" : `${Math.abs(Math.round(v))} percent ${v < 0 ? "left" : "right"}`),
+    },
+    seek: {
+      label: () => "Position in track", min: 0, max: (s) => Math.max(1, Math.floor(s.duration || 0)), step: 5,
+      get: (s) => s.timeElapsed, set: (v) => player.seek(v), commitOnRelease: true, enabled: (s) => !!s.current,
+      text: (v, s) => (s.current ? `${formatTime(v)} of ${formatTime(s.duration)}` : "No track loaded"),
+    },
+    preset: {
+      label: () => "Visual preset", min: 0, max: presets.length - 1, step: 1,
+      get: () => visuals.presetIndex, set: (v) => visuals.setPreset(Math.round(v)), text: (v) => presets[Math.round(v)].label,
+    },
+  };
+}
+
+const ACTION_NAMES = {
+  togglePlay: "play-pause", nextPreset: "visual", previous: "prev", next: "next",
+};
+
+export function createShapedPlayer({ root, player, visuals, presets, openFiles, say }) {
+  const ACT = actions({ player, visuals, presets, openFiles, say });
+  let skin = null;
+  let parts = []; // { el, control, act, update(state) }
+  let screens = [];
+  let leds = [];
+  let visible = false;
+  let raf = 0;
+
+  // Audio data for the screens, read from the same analyser the visuals use.
+  let freq = null;
+  let wave = null;
+  const bars = new Float32Array(10);
+  let level = 0;
+
+  const pct = (v, total) => `${(v / total) * 100}%`;
+
+  function placeCircle(el, c, r = c.r) {
+    el.style.left = pct(c.x, skin.width);
+    el.style.top = pct(c.y, skin.height);
+    // Never smaller than 26px across, so small painted buttons stay easy to hit.
+    el.style.width = `max(26px, ${pct(r * 2, skin.width)})`;
+  }
+
+  function makeButton(c) {
+    const act = ACT[c.action];
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = `sh-ctl sh-btn sh-${ACTION_NAMES[c.action] ?? c.action}`;
+    placeCircle(el, c);
+    el.addEventListener("click", () => act.run());
+    return {
+      el,
+      update(s) {
+        el.setAttribute("aria-label", act.label(s));
+        if (act.pressed) el.setAttribute("aria-pressed", String(!!act.pressed(s)));
+        if (act.enabled) el.disabled = !act.enabled(s);
+      },
+    };
+  }
+
+  // A slider (straight track) or knob (turned): role="slider" with full
+  // keyboard support — arrows, Page Up/Down, Home/End — and pointer dragging.
+  function makeRange(c, kind) {
+    const act = ACT[c.action];
+    const el = document.createElement("div");
+    el.tabIndex = 0;
+    el.setAttribute("role", "slider");
+    el.className = `sh-ctl sh-${kind} sh-${c.action}`;
+    const max = (s) => (typeof act.max === "function" ? act.max(s) : act.max);
+    let preview = null; // value while dragging a commit-on-release slider
+    let dragging = false;
+
+    let fill, thumb, dot;
+    if (kind === "slider") {
+      const dx = c.x2 - c.x1;
+      const dy = c.y2 - c.y1;
+      const vertical = Math.abs(dy) > Math.abs(dx);
+      el.classList.add(vertical ? "is-vertical" : "is-horizontal");
+      if (vertical) el.setAttribute("aria-orientation", "vertical");
+      const len = Math.hypot(dx, dy);
+      const left = Math.min(c.x1, c.x2) - (vertical ? c.w / 2 : 0);
+      const top = Math.min(c.y1, c.y2) - (vertical ? 0 : c.w / 2);
+      el.style.left = pct(left, skin.width);
+      el.style.top = pct(top, skin.height);
+      el.style.width = pct(vertical ? c.w : len, skin.width);
+      el.style.height = pct(vertical ? len : c.w, skin.height);
+      fill = el.appendChild(document.createElement("span"));
+      fill.className = "sh-fill";
+      thumb = el.appendChild(document.createElement("span"));
+      thumb.className = "sh-thumb";
+    } else {
+      placeCircle(el, c);
+      if (c.ring) {
+        el.classList.add("is-ring");
+        // The glowing arc lives in its own layer so the focus ring stays a clean circle.
+        el.appendChild(document.createElement("span")).className = "sh-ring-arc";
+      }
+      dot = el.appendChild(document.createElement("span"));
+      dot.className = "sh-knob-dot";
+    }
+
+    const fraction = (v, s) => {
+      const lo = act.min;
+      const hi = max(s);
+      return hi > lo ? (v - lo) / (hi - lo) : 0;
+    };
+    const valueAt = (f, s) => act.min + Math.max(0, Math.min(1, f)) * (max(s) - act.min);
+
+    function draw(v, s) {
+      const f = Math.max(0, Math.min(1, fraction(v, s)));
+      if (kind === "slider") {
+        const vertical = el.classList.contains("is-vertical");
+        // Track runs from point 1 to point 2; for our vertical sliders that's bottom → top.
+        const reversed = vertical ? c.y2 < c.y1 : c.x2 < c.x1;
+        const along = reversed ? 1 - f : f;
+        if (vertical) {
+          fill.style.height = `${f * 100}%`;
+          fill.style[reversed ? "bottom" : "top"] = "0";
+          thumb.style.top = `${along * 100}%`;
+        } else {
+          fill.style.width = `${f * 100}%`;
+          fill.style[reversed ? "right" : "left"] = "0";
+          thumb.style.left = `${along * 100}%`;
+        }
+      } else {
+        // Knob sweep: 270°, from 7:30 round to 4:30, like a hi-fi dial.
+        el.style.setProperty("--turn", `${-135 + f * 270}deg`);
+        el.style.setProperty("--amount", `${f * 270}deg`);
+      }
+    }
+
+    // While dragging a commit-on-release slider (seek), show where it will go
+    // but only jump there when the pointer lets go.
+    function setFrom(v, commit) {
+      const s = player.state;
+      const clamped = Math.max(act.min, Math.min(max(s), v));
+      if (act.commitOnRelease && !commit) {
+        preview = clamped;
+        update(s);
+        return;
+      }
+      preview = null;
+      act.set(clamped);
+    }
+
+    el.addEventListener("keydown", (e) => {
+      const s = player.state;
+      if (act.enabled && !act.enabled(s)) return;
+      const v = act.get(s);
+      const big = (max(s) - act.min) / 5;
+      const moves = {
+        ArrowUp: act.step, ArrowRight: act.step, ArrowDown: -act.step, ArrowLeft: -act.step,
+        PageUp: big, PageDown: -big,
+      };
+      if (e.key in moves) setFrom(v + moves[e.key], true);
+      else if (e.key === "Home") setFrom(act.min, true);
+      else if (e.key === "End") setFrom(max(s), true);
+      else return;
+      e.preventDefault();
+    });
+
+    function pointerValue(e) {
+      const s = player.state;
+      const box = el.getBoundingClientRect();
+      if (kind === "slider") {
+        const vertical = el.classList.contains("is-vertical");
+        let f = vertical ? (box.bottom - e.clientY) / box.height : (e.clientX - box.left) / box.width;
+        const reversed = vertical ? c.y2 > c.y1 : c.x2 < c.x1;
+        if (reversed) f = 1 - f;
+        return valueAt(f, s);
+      }
+      const cx = box.left + box.width / 2;
+      const cy = box.top + box.height / 2;
+      // Angle from straight up, clockwise; map −135°…135° onto the range.
+      const deg = (Math.atan2(e.clientX - cx, cy - e.clientY) * 180) / Math.PI;
+      return valueAt((Math.max(-135, Math.min(135, deg)) + 135) / 270, s);
+    }
+    el.addEventListener("pointerdown", (e) => {
+      if (act.enabled && !act.enabled(player.state)) return;
+      if (c.ring) {
+        // Only the ring of a ring knob turns it; the middle belongs to the button there.
+        const box = el.getBoundingClientRect();
+        const rr = Math.hypot(e.clientX - (box.left + box.width / 2), e.clientY - (box.top + box.height / 2));
+        if (rr < (c.ring / c.r) * (box.width / 2)) return;
+      }
+      dragging = true;
+      el.setPointerCapture(e.pointerId);
+      el.focus();
+      setFrom(pointerValue(e), false);
+      e.preventDefault();
+    });
+    el.addEventListener("pointermove", (e) => dragging && setFrom(pointerValue(e), false));
+    const end = (e) => {
+      if (!dragging) return;
+      dragging = false;
+      setFrom(preview ?? pointerValue(e), true);
+    };
+    el.addEventListener("pointerup", end);
+    el.addEventListener("pointercancel", end);
+
+    function update(s) {
+      const v = preview ?? act.get(s);
+      el.setAttribute("aria-label", act.label(s));
+      el.setAttribute("aria-valuemin", String(act.min));
+      el.setAttribute("aria-valuemax", String(max(s)));
+      el.setAttribute("aria-valuenow", String(Math.round(v)));
+      el.setAttribute("aria-valuetext", act.text(v, s));
+      if (act.enabled) {
+        const on = act.enabled(s);
+        el.setAttribute("aria-disabled", String(!on));
+        el.tabIndex = on ? 0 : -1;
+      }
+      draw(v, s);
+    }
+    return { el, update };
+  }
+
+  function makeScreen(c) {
+    const canvas = document.createElement("canvas");
+    canvas.className = `sh-screen sh-screen-${c.kind}`;
+    canvas.setAttribute("aria-hidden", "true"); // the Player panel says all this in words
+    if (c.r) {
+      placeCircle(canvas, c);
+      canvas.classList.add("is-round");
+    } else {
+      canvas.style.left = pct(c.x, skin.width);
+      canvas.style.top = pct(c.y, skin.height);
+      canvas.style.width = pct(c.w, skin.width);
+      canvas.style.height = pct(c.h, skin.height);
+    }
+    return { el: canvas, kind: c.kind, ctx: canvas.getContext("2d") };
+  }
+
+  function makeLed(c) {
+    const el = document.createElement("span");
+    el.className = "sh-led";
+    el.setAttribute("aria-hidden", "true");
+    placeCircle(el, c);
+    el.style.width = pct(c.r * 2, skin.width);
+    return { el, state: c.state };
+  }
+
+  // ------------------------------------------------------------ drawing
+  function sizeCanvas(cv) {
+    const ratio = Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.max(1, Math.round(cv.clientWidth * ratio));
+    const h = Math.max(1, Math.round(cv.clientHeight * ratio));
+    if (cv.width !== w || cv.height !== h) {
+      cv.width = w;
+      cv.height = h;
+    }
+    return { w, h };
+  }
+
+  function glass(ctx, w, h) {
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, GLASS_TOP);
+    g.addColorStop(1, GLASS_BOTTOM);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  function lcdText(ctx, text, x, y, size, align = "center", color = LCD) {
+    ctx.font = `700 ${size}px ${MONO}`;
+    ctx.textAlign = align;
+    ctx.textBaseline = "middle";
+    ctx.shadowColor = color;
+    ctx.shadowBlur = size * 0.35;
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y);
+    ctx.shadowBlur = 0;
+  }
+
+  /** Scroll text that doesn't fit, like the marquee on a hi-fi display. */
+  function marquee(ctx, text, x, y, width, size, t, align = "center") {
+    ctx.font = `700 ${size}px ${MONO}`;
+    const tw = ctx.measureText(text).width;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x - (align === "center" ? width / 2 : 0), y - size, width, size * 2);
+    ctx.clip();
+    if (tw <= width) {
+      lcdText(ctx, text, x, y, size, align);
+    } else {
+      const gap = size * 3;
+      const offset = ((t / 1000) * size * 2.2) % (tw + gap);
+      const start = (align === "center" ? x - width / 2 : x) - offset;
+      lcdText(ctx, text, start, y, size, "left");
+      lcdText(ctx, text, start + tw + gap, y, size, "left");
+    }
+    ctx.restore();
+  }
+
+  const STATUS = { PLAYING: "PLAYING", PAUSED: "PAUSED", STOPPED: "STOPPED", ENDED: "FINISHED", CLOSED: "STOPPED" };
+
+  function drawRound(sc, s, t) {
+    const { w, h } = sizeCanvas(sc.el);
+    const ctx = sc.ctx;
+    ctx.clearRect(0, 0, w, h);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(w / 2, h / 2, w / 2, 0, Math.PI * 2);
+    ctx.clip();
+    const g = ctx.createRadialGradient(w / 2, h * 0.35, w * 0.05, w / 2, h / 2, w / 2);
+    g.addColorStop(0, "#4a1112");
+    g.addColorStop(1, GLASS_BOTTOM);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+    lcdText(ctx, s.current ? STATUS[s.status] ?? "" : "PLUMAGE", w / 2, h * 0.25, w * 0.085);
+    lcdText(ctx, formatTime(s.timeElapsed).padStart(5, "0"), w / 2, h * 0.5, w * 0.27);
+    ctx.fillStyle = "rgba(255,165,58,0.35)";
+    ctx.fillRect(w * 0.22, h * 0.66, w * 0.56, Math.max(1, w * 0.006));
+    marquee(ctx, s.current ? s.current.name : "BY GERTRUDE RADIO", w / 2, h * 0.76, w * 0.62, w * 0.075, t);
+    ctx.restore();
+  }
+
+  function drawMeter(sc) {
+    const { w, h } = sizeCanvas(sc.el);
+    const ctx = sc.ctx;
+    ctx.fillStyle = "#120304";
+    ctx.fillRect(0, 0, w, h);
+    const n = 26;
+    const gap = w * 0.006;
+    const segW = (w - gap * (n + 1)) / n;
+    const lit = Math.round(level * n);
+    for (let i = 0; i < n; i++) {
+      const hot = i / n;
+      const on = i < lit;
+      ctx.fillStyle = on ? (hot > 0.85 ? "#ff5a4a" : hot > 0.6 ? "#ffd166" : LCD) : LCD_DIM;
+      if (on) {
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.shadowBlur = h * 0.3;
+      }
+      ctx.fillRect(gap + i * (segW + gap), h * 0.18, segW, h * 0.64);
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  function drawNowPlaying(sc, s, t) {
+    const { w, h } = sizeCanvas(sc.el);
+    const ctx = sc.ctx;
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(0, 0, w, h, w * 0.04);
+    ctx.clip();
+    glass(ctx, w, h);
+    lcdText(ctx, "NOW PLAYING", w / 2, h * 0.1, h * 0.075, "center", "#ffc46b");
+    // Spectrum: 10 columns of LED segments.
+    const cols = bars.length;
+    const rows = 12;
+    const left = w * 0.06;
+    const areaW = w * 0.88;
+    const top = h * 0.2;
+    const areaH = h * 0.5;
+    const cw = areaW / cols;
+    const rh = areaH / rows;
+    for (let c = 0; c < cols; c++) {
+      const litRows = Math.round(bars[c] * rows);
+      for (let r = 0; r < rows; r++) {
+        const on = r < litRows;
+        const y = top + areaH - (r + 1) * rh;
+        ctx.fillStyle = on ? (r > rows * 0.8 ? "#ffd166" : LCD) : LCD_DIM;
+        ctx.fillRect(left + c * cw + cw * 0.14, y + rh * 0.18, cw * 0.72, rh * 0.64);
+      }
+    }
+    ctx.fillStyle = "rgba(255,165,58,0.3)";
+    ctx.fillRect(w * 0.05, h * 0.76, w * 0.9, Math.max(1, h * 0.006));
+    marquee(ctx, s.current ? s.current.name : "Plumage — by Gertrude Radio", w * 0.06, h * 0.88, w * 0.62, h * 0.075, t, "left");
+    lcdText(ctx, s.current ? formatTime(s.timeElapsed) : "", w * 0.94, h * 0.88, h * 0.075, "right");
+    ctx.restore();
+  }
+
+  function readAudio() {
+    let analyser;
+    try {
+      analyser = player.analyser();
+    } catch {
+      return;
+    }
+    if (!analyser) return;
+    if (!freq || freq.length !== analyser.frequencyBinCount) freq = new Uint8Array(analyser.frequencyBinCount);
+    if (!wave || wave.length !== analyser.fftSize) wave = new Uint8Array(analyser.fftSize);
+    const playing = player.state.status === "PLAYING";
+    analyser.getByteFrequencyData(freq);
+    analyser.getByteTimeDomainData(wave);
+    // Ten log-spaced bands from 60 Hz to 12 kHz, falling gently like real LEDs.
+    const nyquist = analyser.context.sampleRate / 2;
+    for (let b = 0; b < bars.length; b++) {
+      const lo = 60 * Math.pow(200, b / bars.length);
+      const hi = 60 * Math.pow(200, (b + 1) / bars.length);
+      let sum = 0;
+      let n = 0;
+      for (let i = Math.floor((lo / nyquist) * freq.length); i <= Math.ceil((hi / nyquist) * freq.length) && i < freq.length; i++) {
+        sum += freq[i];
+        n++;
+      }
+      const v = playing && n ? sum / n / 255 : 0;
+      bars[b] = Math.max(v, bars[b] * 0.86);
+    }
+    let rms = 0;
+    for (let i = 0; i < wave.length; i++) rms += ((wave[i] - 128) / 128) ** 2;
+    rms = playing ? Math.min(1, Math.sqrt(rms / wave.length) * 3.2) : 0;
+    level = Math.max(rms, level * 0.88);
+  }
+
+  function frame(t) {
+    raf = 0;
+    if (!visible || !skin) return;
+    readAudio();
+    const s = player.state;
+    for (const sc of screens) {
+      if (sc.kind === "round") drawRound(sc, s, t);
+      else if (sc.kind === "meter") drawMeter(sc);
+      else if (sc.kind === "nowplaying") drawNowPlaying(sc, s, t);
+    }
+    // Slider positions move with playback (the seek bar), so refresh them here too.
+    for (const p of parts) if (p.el.getAttribute("role") === "slider") p.update(s);
+    raf = requestAnimationFrame(frame);
+  }
+  const startLoop = () => {
+    if (!raf && visible && document.visibilityState === "visible") raf = requestAnimationFrame(frame);
+  };
+
+  // Only draw while the bird is on screen.
+  new IntersectionObserver(([entry]) => {
+    visible = entry.isIntersecting;
+    startLoop();
+  }).observe(root);
+  document.addEventListener("visibilitychange", startLoop);
+
+  function updateAll(s) {
+    for (const p of parts) p.update(s);
+    for (const l of leds) l.el.classList.toggle("is-on", l.state === "playing" && s.status === "PLAYING");
+  }
+  player.subscribe((s) => skin && updateAll(s));
+
+  return {
+    setSkin(next) {
+      skin = next;
+      root.replaceChildren();
+      parts = [];
+      screens = [];
+      leds = [];
+      root.style.aspectRatio = `${skin.width} / ${skin.height}`;
+      const art = document.createElement("img");
+      art.className = "sh-art";
+      art.src = skin.art;
+      art.alt = ""; // decorative; the controls carry the meaning
+      art.draggable = false;
+      root.append(art);
+      for (const c of skin.controls) {
+        if (c.type === "button") parts.push(makeButton(c));
+        else if (c.type === "slider") parts.push(makeRange(c, "slider"));
+        else if (c.type === "knob") parts.push(makeRange(c, "knob"));
+        else if (c.type === "screen") screens.push(makeScreen(c));
+        else if (c.type === "led") leds.push(makeLed(c));
+      }
+      // Screens and lights sit under the controls; controls go in skin order,
+      // which is also the Tab order.
+      root.append(...screens.map((s) => s.el), ...leds.map((l) => l.el), ...parts.map((p) => p.el));
+      updateAll(player.state);
+      startLoop();
+    },
+  };
+}

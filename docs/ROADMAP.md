@@ -40,10 +40,12 @@ watch the visuals move, operate everything from the keyboard, and read the About
 - [x] Progress display and cancel.
 - [x] Eddie renders one of his own tracks and checks it plays. *(3:49 song → 1920×1080 MP4, H.264 + AAC stereo, 237 MB, played through.)*
 
-## Milestone 4 — Shaped surface (experiment) (NEXT)
+## Milestone 4 — Shaped surface (experiment) (CURRENT)
 
-- [ ] Prototype a non-rectangular player outline driving the same controls, starting from Eddie's chosen cardinal concepts A ("Flight Form") and D — see `docs/design/README.md`.
-- [ ] Answer the "how is a shape defined?" open question with something that works.
+- [x] Prototype a non-rectangular player outline driving the same controls, starting from Eddie's chosen cardinal concepts A ("Flight Form") and D — see `docs/design/README.md`. *Both work, from the concept pictures cut out of their backgrounds (`tools/shaped/cutout.py`).*
+- [x] Answer the "how is a shape defined?" open question with something that works. *Artwork with a transparent background (its edge is the outline) + a short list of controls in the art's pixel coordinates (`src/shaped/skins.js`).*
+- [ ] Eddie plays with A and D and decides what to keep, move or redraw.
+- [ ] Final art: Eddie's redrawn birds swap in for the prototype pictures.
 
 ## Later
 

@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="noindex" />
     <meta name="description" content="Plumage — a free music player and MilkDrop visual engine for your browser. A Gertrude Radio app. Your music never leaves your device." />
     <title>Plumage — by Gertrude Radio</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
@@ -166,6 +167,21 @@
       </div>
 
       <div class="col col-side">
+      <!-- Shaped player (Milestone 4 experiment): the outline is the bird. -->
+      <section class="panel shaped" aria-labelledby="shaped-heading">
+        <h2 id="shaped-heading" class="panel-title">Shaped player <span class="badge">Experiment</span></h2>
+        <fieldset class="shaped-pick">
+          <legend class="visually-hidden">Which bird</legend>
+          <label><input type="radio" name="shaped-skin" value="a" checked /> Flight Form (A)</label>
+          <label><input type="radio" name="shaped-skin" value="d" /> Perched (D)</label>
+        </fieldset>
+        <p class="muted small">
+          Eddie's cardinal concepts as working players: the painted buttons, sliders and dials
+          really work, by mouse or keyboard. Prototype art.
+        </p>
+        <div id="shaped-stage" class="shaped-stage" role="group" aria-label="Shaped cardinal player"></div>
+      </section>
+
       <!-- A real list of the playlist. -->
       <section class="panel playlist" aria-labelledby="playlist-heading">
         <h2 id="playlist-heading" class="panel-title">Playlist</h2>

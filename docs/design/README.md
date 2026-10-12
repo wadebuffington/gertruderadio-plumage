@@ -4,8 +4,9 @@
 
 ![Four cardinal-shaped player concepts](redbird-player-concepts.jpg)
 
-AI-generated concept sheet (Nano Banana Pro), made by Eddie. **Reference only —
-not production art and not shipped in the app.** The generator's name on the sheet
+AI-generated concept sheet (Nano Banana Pro), made by Eddie. **Not final art.** As of
+Milestone 4, concepts A and D are used *as prototype art* in the shaped-player experiment
+(Eddie's call, Oct 2026), until Eddie redraws them. The generator's name on the sheet
 is just its label, not part of our branding.
 
 **Eddie's picks: Concept A ("Flight Form") and Concept D.**

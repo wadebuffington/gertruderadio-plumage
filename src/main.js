@@ -6,6 +6,8 @@ import { createVisuals } from "./visuals.js";
 import { setupFileOpening } from "./files.js";
 import { PRESETS } from "./presets.js";
 import { renderVideo, rendererSupported, frameSize, FPS } from "./renderer.js";
+import { createShapedPlayer } from "./shaped/shaped.js";
+import { SHAPED_SKINS } from "./shaped/skins.js";
 
 const $ = (sel) => document.querySelector(sel);
 const messages = $("#messages");
@@ -177,6 +179,35 @@ function start() {
     if (document.fullscreenElement) document.exitFullscreen();
     else stage.requestFullscreen?.();
   });
+
+  // --- Shaped player (experiment) -----------------------------------------
+  const shaped = createShapedPlayer({
+    root: $("#shaped-stage"),
+    player,
+    visuals,
+    presets: PRESETS,
+    openFiles: () => $("#file-input").click(),
+    say,
+  });
+  const shapedPick = document.querySelectorAll('input[name="shaped-skin"]');
+  let shapedChoice = "a";
+  try {
+    shapedChoice = localStorage.getItem("plumage.shapedSkin") || "a";
+  } catch {}
+  const showShaped = (id) => {
+    const skin = SHAPED_SKINS.find((s) => s.id === id) ?? SHAPED_SKINS[0];
+    for (const r of shapedPick) r.checked = r.value === skin.id;
+    shaped.setSkin(skin);
+  };
+  for (const r of shapedPick) {
+    r.addEventListener("change", () => {
+      showShaped(r.value);
+      try {
+        localStorage.setItem("plumage.shapedSkin", r.value);
+      } catch {}
+    });
+  }
+  showShaped(shapedChoice);
 
   // --- Make a video ------------------------------------------------------------
   const renderForm = $("#render-form");

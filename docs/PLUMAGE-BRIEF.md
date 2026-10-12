@@ -67,6 +67,8 @@ All three drive the same underlying player state.
 
 - How is a shape defined in the shaped-surface system — vector outline, mask image, or a
   small declarative description? Decides whether outside skinners can ever participate.
+  *(Prototype answer, Oct 2026: a picture with a transparent background, whose edge is the
+  outline, plus a short declarative list of controls. See src/shaped/skins.js.)*
 - Does the shaped surface reuse the classic skin format (compatibility, but inherits the
   rectangle) or get its own?
 - Where do render recipes live, and are they the same file Console will one day read?

@@ -88,3 +88,22 @@ Small decisions made during the build that the brief did not cover. Newest at th
   - **The finished file is held in memory** until saved (about 1 MB per second of 720p video).
     Fine for songs; very long mixes may need streaming straight to disk later (Chrome can).
   - Nothing is stamped on the video (hard rule 1).
+- 2026-10-12 — Milestone 4 (shaped player prototype). Eddie: build it from the concept pictures
+  as they are; he'll redraw after trying it. He's fine with it being on the live site.
+  - **A shape = artwork + a list of controls.** The transparent edge of the picture is the outline;
+    `src/shaped/skins.js` lists buttons (circles), sliders (straight tracks), knobs (turned), screens
+    (drawn live) and lights, in the art's own pixel coordinates. Simple enough for outside artists.
+  - **Cut-outs are made by script** (`tools/shaped/cutout.py`: dark blue-grey background flooded
+    away from the edges; the cardinal's neutral-black mask is kept). Sources: `docs/design/concept-a.jpg`
+    and `concept-d.jpg` (Eddie's crops of the concept sheet).
+  - **Every painted control is a real control laid over it**: `<button>`s, or `role="slider"`
+    elements with arrow/Page/Home/End keys and dragging. Names and states for screen readers; gold focus
+    ring; toggles show a teal ring *and* a dot (not colour alone); hit areas never under 26px.
+  - **Painted readouts are covered by live screens** (time, status, scrolling title, spectrum, level
+    meter), so the generator's garbled lettering never shows. They're `aria-hidden`; the Player panel says
+    the same things in words.
+  - Mapping chosen for the prototype: A — flower = next visual, knob = choose visual, left sliders =
+    volume and balance; D — big button = play/pause, its outer ring = volume dial. Easy to change.
+  - The page now carries `<meta name="robots" content="noindex">`, asking search engines not to list it
+    while it's experimental. Remove it when Plumage is ready to be found.
+  - The chosen bird (A or D) is remembered in the browser (localStorage); nothing leaves the device.

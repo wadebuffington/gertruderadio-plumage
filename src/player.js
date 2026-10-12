@@ -61,6 +61,9 @@ export function createPlayer({ doubleSize = false } = {}) {
       timeElapsed: state.media.timeElapsed,
       duration: current?.duration ?? 0,
       volume: state.media.volume,
+      balance: state.media.balance, // -100 (left) … 100 (right)
+      shuffle: state.media.shuffle,
+      repeat: state.media.repeat,
       tracks,
       currentIndex,
       current,
@@ -181,6 +184,9 @@ export function createPlayer({ doubleSize = false } = {}) {
     },
     seek: (seconds) => webamp.seekToTime(seconds),
     setVolume: (v) => webamp.setVolume(Math.max(0, Math.min(100, Math.round(v)))),
+    setBalance: (v) => webamp.store.dispatch({ type: "SET_BALANCE", balance: Math.max(-100, Math.min(100, Math.round(v))) }),
+    toggleShuffle: () => webamp.toggleShuffle(),
+    toggleRepeat: () => webamp.toggleRepeat(),
     playIndex(index) {
       webamp.setCurrentTrack(index);
       webamp.play();
