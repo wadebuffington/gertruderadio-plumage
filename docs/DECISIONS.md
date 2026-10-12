@@ -39,3 +39,15 @@ Small decisions made during the build that the brief did not cover. Newest at th
 - 2026-10-12 — Hosting: Cloudflare Pages connected to the GitHub repo (it runs
   `npm run build` and serves `dist/`), so Eddie never has to install Node. `.node-version`
   pins Node 22 for Cloudflare's build.
+- 2026-10-12 — After Eddie's first try:
+  - **Rewind / fast-forward added** (⏪ ⏩, 10 seconds). ⏮ ⏭ stay "previous/next track";
+    ⏮ restarts the song if it's more than 3 seconds in (like a CD player). When a button
+    can't do anything (one track only, last track), a short message says so on screen and
+    to screen readers instead of silently doing nothing.
+  - **Classic player starts at double size** when the window is at least 720px wide, so
+    the 275px-wide pixel skins are readable; phones keep normal size, and it drops back to
+    normal if the window gets too narrow. The playlist window is widened to match. Webamp's
+    own Options → Double Size still works. (Webamp's playlist *text* doesn't double — that's
+    Webamp; our own Playlist panel is the large, readable one.)
+  - **Layout:** two independent columns so tall panels no longer leave gaps; the side
+    column is 600px to hold the double-size player.

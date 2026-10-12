@@ -3,17 +3,35 @@
 // instance, so they can never disagree about what is playing.
 import Webamp from "webamp";
 
-export function createPlayer() {
+// Classic windows are 275px wide (550 at double size); the playlist window
+// grows in 25px x 29px steps, so it is widened to sit flush under the others.
+function classicLayout(doubled) {
+  const k = doubled ? 2 : 1;
+  return {
+    main: { position: { left: 0, top: 0 } },
+    equalizer: { position: { left: 0, top: 116 * k } },
+    playlist: {
+      position: { left: 0, top: 232 * k },
+      size: doubled ? { extraWidth: 11, extraHeight: 4 } : { extraWidth: 0, extraHeight: 2 },
+    },
+  };
+}
+
+/** Pixel size of the whole classic stack, for the box that holds it. */
+export function classicSize(doubled) {
+  return doubled ? { width: 550, height: 696 } : { width: 275, height: 406 };
+}
+
+export function createPlayer({ doubleSize = false } = {}) {
   const webamp = new Webamp({
     // Our own shortcuts live in the semantic layer; Webamp's global hotkeys
     // would fire while typing or using a screen reader.
     enableHotkeys: false,
     enableMediaSession: true,
-    windowLayout: {
-      main: { position: { left: 0, top: 0 } },
-      equalizer: { position: { left: 0, top: 116 } },
-      playlist: { position: { left: 0, top: 232 }, size: { extraHeight: 2, extraWidth: 0 } },
-    },
+    // Despite the name, this sets whether Webamp *starts* in double size.
+    // It can still be switched from Webamp's own Options menu.
+    enableDoubleSizeMode: doubleSize,
+    windowLayout: classicLayout(doubleSize),
   });
 
   const listeners = new Set();
@@ -60,13 +78,66 @@ export function createPlayer() {
     },
     analyser: () => webamp.media.getAnalyser(),
 
+    /** Classic skins are ~275px wide; double size makes them readable on today's screens. */
+    get doubleSize() {
+      return webamp.store.getState().display.doubled;
+    },
+    setDoubleSize(on) {
+      if (this.doubleSize !== on) webamp.store.dispatch({ type: "TOGGLE_DOUBLESIZE_MODE" });
+      this.restackClassic();
+    },
+    /** Put the three classic windows back in a tidy stack for the current size. */
+    restackClassic() {
+      const layout = classicLayout(this.doubleSize);
+      const { extraWidth, extraHeight } = layout.playlist.size;
+      webamp.store.dispatch({ type: "WINDOW_SIZE_CHANGED", windowId: "playlist", size: [extraWidth, extraHeight] });
+      webamp.store.dispatch({
+        type: "UPDATE_WINDOW_POSITIONS",
+        // Once rendered, Webamp keeps positions in its own coordinates, so
+        // stack relative to wherever the main window currently is.
+        positions: Object.fromEntries(
+          ["main", "equalizer", "playlist"].map((id) => {
+            const origin = webamp.store.getState().windows.genWindows.main.position;
+            const p = layout[id].position;
+            return [id, { x: origin.x + p.left, y: origin.y + p.top }];
+          }),
+        ),
+        absolute: false,
+      });
+    },
+
     togglePlay() {
       if (snapshot.status === "PLAYING") webamp.pause();
       else if (snapshot.tracks.length) webamp.play();
     },
     stop: () => webamp.stop(),
-    next: () => webamp.nextTrack(),
-    previous: () => webamp.previousTrack(),
+
+    /** Next track. Returns a message to show when there is nowhere to go. */
+    next() {
+      const { currentIndex, tracks } = snapshot;
+      const atEnd = currentIndex >= tracks.length - 1;
+      if (atEnd && !webamp.isRepeatEnabled() && !webamp.isShuffleEnabled()) {
+        return tracks.length === 1 ? "There's only one track. Open more files to skip ahead." : "This is the last track.";
+      }
+      webamp.nextTrack();
+      return null;
+    },
+
+    /** Like a CD player: restart the song if it's been playing a while, else go back one. */
+    previous() {
+      if (snapshot.timeElapsed > 3 || snapshot.currentIndex <= 0) {
+        webamp.seekToTime(0);
+        return snapshot.currentIndex <= 0 ? "Back to the start of the track." : null;
+      }
+      webamp.previousTrack();
+      return null;
+    },
+
+    /** Jump forward (positive) or back (negative) within the current track. */
+    skip(seconds) {
+      const end = Math.max(0, (snapshot.duration || 0) - 1);
+      webamp.seekToTime(Math.min(end, Math.max(0, snapshot.timeElapsed + seconds)));
+    },
     seek: (seconds) => webamp.seekToTime(seconds),
     setVolume: (v) => webamp.setVolume(Math.max(0, Math.min(100, Math.round(v)))),
     playIndex(index) {

@@ -1,6 +1,6 @@
 import "./style.css";
 import Webamp from "webamp";
-import { createPlayer } from "./player.js";
+import { createPlayer, classicSize } from "./player.js";
 import { createControls } from "./controls.js";
 import { createVisuals } from "./visuals.js";
 import { setupFileOpening } from "./files.js";
@@ -8,10 +8,13 @@ import { PRESETS } from "./presets.js";
 
 const $ = (sel) => document.querySelector(sel);
 const messages = $("#messages");
+let messageTimer = 0;
 const say = (msg) => {
   // Clearing first makes screen readers repeat an identical message.
   messages.textContent = "";
   requestAnimationFrame(() => (messages.textContent = msg));
+  clearTimeout(messageTimer);
+  messageTimer = setTimeout(() => (messages.textContent = ""), 8000);
 };
 const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
@@ -22,12 +25,35 @@ if (!Webamp.browserIsSupported()) {
 }
 
 function start() {
-  const player = createPlayer();
-  createControls(document.body, player);
+  // Double size wherever it fits; phones keep the original size.
+  const player = createPlayer({ doubleSize: window.innerWidth >= 720 });
+  createControls(document.body, player, say);
 
   // --- Classic skin surface ---------------------------------------------
   const classicHost = $("#classic-host");
   const reopenBtn = $("#classic-reopen");
+  // Size the box to the classic windows, and follow if someone switches
+  // double size from Webamp's own Options menu.
+  let doubled = null;
+  const fitClassic = () => {
+    if (player.doubleSize === doubled) return;
+    const changed = doubled !== null;
+    doubled = player.doubleSize;
+    // Covers Webamp's own Options → Double Size too.
+    if (changed) player.restackClassic();
+    const { width, height } = classicSize(doubled);
+    classicHost.style.width = `${width}px`;
+    classicHost.style.height = `${height}px`;
+  };
+  fitClassic();
+  player.webamp.store.subscribe(fitClassic);
+  // If the window gets too narrow for double size (a phone turned upright,
+  // a window dragged smaller), drop back to normal size rather than overflow.
+  new ResizeObserver(() => {
+    if (player.doubleSize && classicHost.parentElement.clientWidth < classicSize(true).width) {
+      player.setDoubleSize(false);
+    }
+  }).observe(classicHost.parentElement);
   player.webamp.renderInto(classicHost);
   player.webamp.onClose(() => {
     reopenBtn.hidden = false;

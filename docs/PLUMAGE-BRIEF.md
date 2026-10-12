@@ -72,4 +72,8 @@ All three drive the same underlying player state.
 - Where do render recipes live, and are they the same file Console will one day read?
 - How much of Webamp do we take — the whole player, or engine pieces inside our own shell?
   *(Milestone 1 may use the whole player as the fastest path; revisit after.)*
+- Should Plumage ever leave the browser? An installable web app gives it its own window
+  and dock icon, but only a small native wrapper (e.g. Tauri) can give a truly
+  free-floating, see-through, bird-shaped window on the desktop like Sonique. Decide
+  before the shaped-surface milestone. *(Raised by Eddie, Oct 2026.)*
 - Does the name "Plumage" stay? (Current answer: yes, unless Eddie says otherwise.)

@@ -25,7 +25,7 @@ const STATUS_WORDS = {
   CLOSED: "Stopped",
 };
 
-export function createControls(root, player) {
+export function createControls(root, player, say) {
   const $ = (sel) => root.querySelector(sel);
   const playBtn = $("#ctl-play");
   const playLabel = $("#ctl-play-label");
@@ -42,8 +42,11 @@ export function createControls(root, player) {
   const announcer = $("#announcer");
   const transport = root.querySelectorAll("[data-needs-tracks]");
 
-  $("#ctl-prev").addEventListener("click", () => player.previous());
-  $("#ctl-next").addEventListener("click", () => player.next());
+  const tell = (msg) => msg && say(msg);
+  $("#ctl-prev").addEventListener("click", () => tell(player.previous()));
+  $("#ctl-next").addEventListener("click", () => tell(player.next()));
+  $("#ctl-back").addEventListener("click", () => player.skip(-10));
+  $("#ctl-fwd").addEventListener("click", () => player.skip(10));
   $("#ctl-stop").addEventListener("click", () => player.stop());
   playBtn.addEventListener("click", () => player.togglePlay());
 

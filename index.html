@@ -48,6 +48,7 @@
     </p>
 
     <main class="layout">
+      <div class="col col-main">
       <!-- The accessible player: the source of truth. -->
       <section id="player" class="panel player" aria-labelledby="player-heading" tabindex="-1">
         <h2 id="player-heading" class="panel-title">Player</h2>
@@ -69,16 +70,24 @@
           <button type="button" id="ctl-prev" class="btn btn-round" data-needs-tracks disabled>
             <span aria-hidden="true">⏮</span><span class="visually-hidden">Previous track</span>
           </button>
+          <button type="button" id="ctl-back" class="btn btn-round" data-needs-tracks disabled>
+            <span aria-hidden="true">⏪</span><span class="visually-hidden">Rewind 10 seconds</span>
+          </button>
           <button type="button" id="ctl-play" class="btn btn-round btn-play" data-needs-tracks disabled>
             <span id="ctl-play-icon" aria-hidden="true">▶</span><span id="ctl-play-label" class="visually-hidden">Play</span>
           </button>
-          <button type="button" id="ctl-stop" class="btn btn-round" data-needs-tracks disabled>
-            <span aria-hidden="true">■</span><span class="visually-hidden">Stop</span>
+          <button type="button" id="ctl-fwd" class="btn btn-round" data-needs-tracks disabled>
+            <span aria-hidden="true">⏩</span><span class="visually-hidden">Fast-forward 10 seconds</span>
           </button>
           <button type="button" id="ctl-next" class="btn btn-round" data-needs-tracks disabled>
             <span aria-hidden="true">⏭</span><span class="visually-hidden">Next track</span>
           </button>
+          <button type="button" id="ctl-stop" class="btn btn-round" data-needs-tracks disabled>
+            <span aria-hidden="true">■</span><span class="visually-hidden">Stop</span>
+          </button>
         </div>
+        <!-- Short messages ("This is the last track") for everyone, read out by screen readers too. -->
+        <p id="messages" class="player-msg" role="status" aria-atomic="true"></p>
 
         <div class="volume-row">
           <label for="ctl-volume">Volume</label>
@@ -113,6 +122,9 @@
         <p class="preset-credit">Preset: <span id="preset-credit"></span></p>
       </section>
 
+      </div>
+
+      <div class="col col-side">
       <!-- A real list of the playlist. -->
       <section class="panel playlist" aria-labelledby="playlist-heading">
         <h2 id="playlist-heading" class="panel-title">Playlist</h2>
@@ -130,6 +142,7 @@
         <button type="button" id="classic-reopen" class="btn btn-small" hidden>Show classic player</button>
         <div id="classic-host" class="classic-host"></div>
       </section>
+      </div>
     </main>
 
     <footer class="site-footer">
@@ -141,9 +154,8 @@
       <p>Drop audio files to add them</p>
     </div>
 
-    <!-- Screen-reader announcements: track changes, and app messages, kept apart so one never cuts off the other. -->
+    <!-- Screen-reader announcement of track changes, kept apart from #messages so one never cuts off the other. -->
     <div id="announcer" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
-    <div id="messages" class="visually-hidden" role="status" aria-atomic="true"></div>
 
     <dialog id="about-dialog" class="about" aria-labelledby="about-title">
       <h2 id="about-title">About Plumage</h2>
