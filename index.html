@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="description" content="Plumage — a free music player and MilkDrop visual engine for your browser. A Gertrude Radio app. Your music never leaves your device." />
+    <title>Plumage — by Gertrude Radio</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <a class="skip-link" href="#player">Skip to player controls</a>
+
+    <header class="site-header">
+      <div class="brand">
+        <svg class="rose" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <g>
+    <circle cx="24" cy="24" r="23" fill="#0B0A10" stroke="#C9A227" stroke-width="2"/>
+    <ellipse cx="24.00" cy="12.50" rx="4.6" ry="7.6" transform="rotate(0 24.00 12.50)" fill="#E04A64"/>
+    <ellipse cx="32.13" cy="15.87" rx="4.6" ry="7.6" transform="rotate(45 32.13 15.87)" fill="#E2B33C"/>
+    <ellipse cx="35.50" cy="24.00" rx="4.6" ry="7.6" transform="rotate(90 35.50 24.00)" fill="#3FB7B0"/>
+    <ellipse cx="32.13" cy="32.13" rx="4.6" ry="7.6" transform="rotate(135 32.13 32.13)" fill="#E2B33C"/>
+    <ellipse cx="24.00" cy="35.50" rx="4.6" ry="7.6" transform="rotate(180 24.00 35.50)" fill="#E04A64"/>
+    <ellipse cx="15.87" cy="32.13" rx="4.6" ry="7.6" transform="rotate(225 15.87 32.13)" fill="#E2B33C"/>
+    <ellipse cx="12.50" cy="24.00" rx="4.6" ry="7.6" transform="rotate(270 12.50 24.00)" fill="#3FB7B0"/>
+    <ellipse cx="15.87" cy="15.87" rx="4.6" ry="7.6" transform="rotate(315 15.87 15.87)" fill="#E2B33C"/>
+    <circle cx="24" cy="24" r="22" fill="none" stroke="#0B0A10" stroke-width="1.5" opacity=".6"/>
+    <circle cx="24" cy="24" r="5.2" fill="#9B1B30" stroke="#E2B33C" stroke-width="1.5"/>
+  </g>
+        </svg>
+        <div>
+          <h1>Plumage</h1>
+          <p class="byline">by Gertrude Radio</p>
+        </div>
+      </div>
+      <nav class="header-actions" aria-label="Plumage">
+        <button type="button" id="open-files" class="btn btn-primary">
+          <span aria-hidden="true">＋</span> Open files…
+        </button>
+        <button type="button" id="open-about" class="btn" aria-haspopup="dialog">About</button>
+      </nav>
+      <input type="file" id="file-input" accept="audio/*,.mp3,.m4a,.aac,.ogg,.oga,.opus,.wav,.flac,.webm" multiple hidden />
+    </header>
+
+    <p id="unsupported" class="notice" role="alert" hidden>
+      Sorry — this browser is missing features Plumage needs. Please try a current
+      version of Firefox, Chrome, Edge or Safari.
+    </p>
+
+    <main class="layout">
+      <!-- The accessible player: the source of truth. -->
+      <section id="player" class="panel player" aria-labelledby="player-heading" tabindex="-1">
+        <h2 id="player-heading" class="panel-title">Player</h2>
+
+        <div class="now">
+          <p class="now-label">Now playing</p>
+          <p id="now-title" class="now-title">Nothing playing yet</p>
+          <p id="now-status" class="now-status">Open some audio files to begin.</p>
+        </div>
+
+        <div class="seek-row">
+          <span id="ctl-elapsed" class="time" aria-hidden="true">0:00</span>
+          <label class="visually-hidden" for="ctl-seek">Position in track</label>
+          <input type="range" id="ctl-seek" class="slider" min="0" max="1" step="1" value="0" disabled />
+          <span id="ctl-total" class="time" aria-hidden="true">0:00</span>
+        </div>
+
+        <div class="transport" role="group" aria-label="Playback">
+          <button type="button" id="ctl-prev" class="btn btn-round" data-needs-tracks disabled>
+            <span aria-hidden="true">⏮</span><span class="visually-hidden">Previous track</span>
+          </button>
+          <button type="button" id="ctl-play" class="btn btn-round btn-play" data-needs-tracks disabled>
+            <span id="ctl-play-icon" aria-hidden="true">▶</span><span id="ctl-play-label" class="visually-hidden">Play</span>
+          </button>
+          <button type="button" id="ctl-stop" class="btn btn-round" data-needs-tracks disabled>
+            <span aria-hidden="true">■</span><span class="visually-hidden">Stop</span>
+          </button>
+          <button type="button" id="ctl-next" class="btn btn-round" data-needs-tracks disabled>
+            <span aria-hidden="true">⏭</span><span class="visually-hidden">Next track</span>
+          </button>
+        </div>
+
+        <div class="volume-row">
+          <label for="ctl-volume">Volume</label>
+          <input type="range" id="ctl-volume" class="slider" min="0" max="100" step="1" value="75" />
+          <output id="ctl-volume-value" for="ctl-volume" aria-hidden="true">75%</output>
+        </div>
+      </section>
+
+      <!-- MilkDrop visuals. -->
+      <section class="panel visuals" aria-labelledby="visuals-heading">
+        <h2 id="visuals-heading" class="panel-title">Visuals</h2>
+        <div id="stage" class="stage">
+          <canvas id="visuals-canvas" aria-hidden="true"></canvas>
+          <p id="visuals-note" class="stage-note"></p>
+        </div>
+        <div class="preset-row">
+          <button type="button" id="visuals-toggle" class="btn btn-toggle" aria-pressed="true">
+            Visuals <span class="state" aria-hidden="true">On</span>
+          </button>
+          <button type="button" id="preset-prev" class="btn btn-round btn-small" data-preset-step>
+            <span aria-hidden="true">‹</span><span class="visually-hidden">Previous visual preset</span>
+          </button>
+          <label class="preset-pick">
+            <span class="visually-hidden">Visual preset</span>
+            <select id="preset-select"></select>
+          </label>
+          <button type="button" id="preset-next" class="btn btn-round btn-small" data-preset-step>
+            <span aria-hidden="true">›</span><span class="visually-hidden">Next visual preset</span>
+          </button>
+          <button type="button" id="stage-fullscreen" class="btn btn-small">Full screen</button>
+        </div>
+        <p class="preset-credit">Preset: <span id="preset-credit"></span></p>
+      </section>
+
+      <!-- A real list of the playlist. -->
+      <section class="panel playlist" aria-labelledby="playlist-heading">
+        <h2 id="playlist-heading" class="panel-title">Playlist</h2>
+        <p id="playlist-empty" class="muted">
+          No tracks yet. Use <strong>Open files…</strong> or drop audio files anywhere on this page.
+          Your music stays on your device — nothing is uploaded.
+        </p>
+        <ol id="playlist" class="track-list"></ol>
+      </section>
+
+      <!-- The classic skin surface (Webamp). Mouse-driven; the Player panel above does everything it does. -->
+      <section class="panel classic" aria-labelledby="classic-heading">
+        <h2 id="classic-heading" class="panel-title">Classic player</h2>
+        <p class="muted small">Drag its windows around. The Player panel controls the same music.</p>
+        <button type="button" id="classic-reopen" class="btn btn-small" hidden>Show classic player</button>
+        <div id="classic-host" class="classic-host"></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>Free. No paywall. No advertising. No account. Made by Redbird for Gertrude Radio.</p>
+      <p class="small">Built on Webamp and Butterchurn. Plumage is not Winamp and is not affiliated with Winamp or Nullsoft.</p>
+    </footer>
+
+    <div id="drop-zone" class="drop-zone" hidden aria-hidden="true">
+      <p>Drop audio files to add them</p>
+    </div>
+
+    <!-- Screen-reader announcements: track changes, and app messages, kept apart so one never cuts off the other. -->
+    <div id="announcer" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+    <div id="messages" class="visually-hidden" role="status" aria-atomic="true"></div>
+
+    <dialog id="about-dialog" class="about" aria-labelledby="about-title">
+      <h2 id="about-title">About Plumage</h2>
+      <p class="lede">
+        Plumage — by Gertrude Radio. A free, skinnable music player and visual engine
+        for your browser, made by Redbird.
+      </p>
+      <p><strong>Free. No paywall. No advertising. No account.</strong></p>
+      <p>
+        Your music stays on your device. Files you open are played by your browser
+        and never uploaded. No analytics, no trackers.
+      </p>
+
+      <h3>Built on</h3>
+      <ul class="credits">
+        <li>
+          <strong>Webamp</strong> by Jordan Eldredge — MIT License.
+          <a href="https://github.com/captbaritone/webamp" target="_blank" rel="noopener noreferrer">Webamp source code<span class="visually-hidden"> (opens in a new tab)</span></a>
+        </li>
+        <li>
+          <strong>Butterchurn</strong> by Jordan Berg — MIT License.
+          <a href="https://github.com/jberg/butterchurn" target="_blank" rel="noopener noreferrer">Butterchurn source code<span class="visually-hidden"> (opens in a new tab)</span></a>
+        </li>
+        <li><strong>MilkDrop</strong> by Ryan Geiss — the visualizer Butterchurn brings to the web.</li>
+        <li>
+          <strong>Presets</strong> by Flexi and the MilkDrop preset authors — including Geiss,
+          Martin, Aderrasi, Rovastar, Loadus, Zylot, Eo.S., Phat, Krash and Illusion — via the
+          butterchurn-presets collection (MIT License).
+        </li>
+        <li><strong>Justin Frankel and Nullsoft</strong> — inspiration only; not a code dependency.</li>
+      </ul>
+      <p class="small">
+        Plumage is not Winamp and is not affiliated with Winamp or Nullsoft.
+        Full license texts:
+        <a href="./THIRD-PARTY-LICENSES.txt" target="_blank" rel="noopener">third-party licenses<span class="visually-hidden"> (opens in a new tab)</span></a>.
+      </p>
+      <form method="dialog" class="about-actions">
+        <button type="submit" id="close-about" class="btn btn-primary">Close</button>
+      </form>
+    </dialog>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

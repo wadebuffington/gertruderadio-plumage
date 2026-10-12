@@ -7,19 +7,21 @@ before the next begins.
 
 The proof of concept. Give the idea some life; don't build the cathedral.
 
-- [ ] Project scaffold: static site, small Vite setup (or no-build if simpler), `npm run dev` and `npm run build`.
-- [ ] Webamp running in the page with its default skin.
-- [ ] Butterchurn MilkDrop visuals running and reacting to the playing audio, with a handful of presets and a way to change preset.
-- [ ] **Open local files**: "Open files…" button and drag-and-drop. Audio stays on the device; nothing uploaded.
-- [ ] **Semantic control bar** (the accessible surface): Play/Pause, Previous, Next, Stop, seek slider, volume slider, current track name, and a real playlist list — all keyboard-operable with screen-reader names, wired to the same player state as Webamp.
-- [ ] Live-region announcement when the track changes.
-- [ ] Gertrude Radio page shell: title "Plumage — by Gertrude Radio", dark look with crimson/gold/teal accents, works at phone width.
-- [ ] **About dialog** with full attribution (see CLAUDE.md) and the line "Free. No paywall. No advertising. No account."
-- [ ] Short README section: how to run it locally and how to try it.
-- [ ] Deployable `dist/` folder that runs as plain static files.
+- [x] Project scaffold: static site, small Vite setup (or no-build if simpler), `npm run dev` and `npm run build`.
+- [x] Webamp running in the page with its default skin.
+- [x] Butterchurn MilkDrop visuals running and reacting to the playing audio, with a handful of presets and a way to change preset.
+- [x] **Open local files**: "Open files…" button and drag-and-drop. Audio stays on the device; nothing uploaded.
+- [x] **Semantic control bar** (the accessible surface): Play/Pause, Previous, Next, Stop, seek slider, volume slider, current track name, and a real playlist list — all keyboard-operable with screen-reader names, wired to the same player state as Webamp.
+- [x] Live-region announcement when the track changes.
+- [x] Gertrude Radio page shell: title "Plumage — by Gertrude Radio", dark look with crimson/gold/teal accents, works at phone width.
+- [x] **About dialog** with full attribution (see CLAUDE.md) and the line "Free. No paywall. No advertising. No account."
+- [x] Short README section: how to run it locally and how to try it.
+- [x] Deployable `dist/` folder that runs as plain static files.
 
 **Done when:** Eddie can open the page, drop in an MP3 from his own computer, hear it,
 watch the visuals move, operate everything from the keyboard, and read the About credits.
+
+*Built 2026-10-12; waiting on Eddie to try it before Milestone 2 starts.*
 
 ## Milestone 2 — A Redbird skin
 

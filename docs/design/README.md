@@ -66,5 +66,15 @@ direction for original Plumage skins.
   the same standard controls (title bar, EQ sliders, playlist) — proof that function
   can stay constant while the world around it changes.
 
+## Eddie's favorite cardinal image (October 2026)
+
+Eddie shared a favorite photo-style cardinal **in flight**: seen from the side,
+both wings raised high and fanned so every flight feather separates, tail spread
+wide below, crest up, beak open, on plain white. Not kept in the repo (it is not
+our artwork). Take from it: the raised, fanned wings and spread tail are the
+silhouette Eddie loves — a strong match for Concept A ("Flight Form"), and a good
+pose for a large Redbird skin or the app's animated "now playing" moments. Feather
+separation means the outline is busy; a shaped skin will want a simplified hit shape.
+
 Note: classic Winamp 2 skins (the rectangular ones) already load in Webamp. Users can
 load their own from the Webamp skin museum — we link to it, we don't bundle them.

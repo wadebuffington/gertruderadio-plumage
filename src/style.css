@@ -1,0 +1,576 @@
+/* Plumage — Gertrude Radio look: an underground cathedral after dark.
+   Near-black stone, stained-glass accents. All text pairs meet WCAG AA. */
+
+:root {
+  /* Stone */
+  --bg: #0b0a10;
+  --bg-deep: #07060a;
+  --panel: #15131d;
+  --panel-raised: #1e1b29;
+  --line: #3a3548;
+  /* Ink */
+  --text: #ece6da;
+  --muted: #bdb5c9; /* 9.6:1 on --panel */
+  /* Stained glass (brand values, then brightened for text/lines on dark) */
+  --crimson: #9b1b30;
+  --gold: #b8860b;
+  --teal: #1f6e6e;
+  --crimson-lit: #ef5d76; /* 5.6:1 on --panel */
+  --gold-lit: #e8bb45; /* 10:1 */
+  --teal-lit: #4cc4bc; /* 8.6:1 */
+  --focus: #ffd866;
+
+  --radius: 14px;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 112.5%; /* 18px base — generous by default */
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 600px at 15% -10%, rgb(155 27 48 / 0.22), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, rgb(31 110 110 / 0.2), transparent 60%),
+    radial-gradient(800px 600px at 50% 120%, rgb(184 134 11 / 0.12), transparent 60%),
+    var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.5;
+}
+
+/* ---------- Focus: strong and always visible ---------- */
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+[hidden] {
+  display: none !important;
+}
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  background: var(--gold-lit);
+  color: #120f08;
+  font-weight: 700;
+  border-radius: 8px;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* ---------- Header ---------- */
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem clamp(1rem, 3vw, 2rem);
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(to bottom, rgb(7 6 10 / 0.9), rgb(7 6 10 / 0.4));
+  position: relative;
+}
+/* A thin band of stained glass under the header. */
+.site-header::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 -1px 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--crimson-lit), var(--gold-lit) 50%, var(--teal-lit));
+  opacity: 0.85;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+.rose {
+  width: 3rem;
+  height: 3rem;
+  flex: none;
+  filter: drop-shadow(0 0 10px rgb(232 187 69 / 0.35));
+}
+.brand h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: var(--text);
+}
+.byline {
+  margin: 0.2rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold-lit);
+}
+.header-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2.75rem; /* 44px+ touch target */
+  padding: 0.5rem 1.1rem;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-raised);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.btn:hover:not(:disabled) {
+  border-color: var(--gold-lit);
+  background: #282436;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: var(--crimson);
+  border-color: var(--crimson-lit);
+  color: #fff;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #b5223b;
+}
+.btn-round {
+  width: 3.25rem;
+  height: 3.25rem;
+  padding: 0;
+  font-size: 1.15rem;
+}
+.btn-play {
+  width: 4.25rem;
+  height: 4.25rem;
+  font-size: 1.5rem;
+  background: radial-gradient(circle at 35% 30%, #c22a45, var(--crimson) 70%);
+  border-color: var(--gold-lit);
+  color: #fff;
+  box-shadow: 0 0 22px rgb(239 93 118 / 0.35);
+}
+.btn-small {
+  min-height: 2.75rem;
+  font-size: 0.9rem;
+}
+.btn-round.btn-small {
+  width: 2.75rem;
+  height: 2.75rem;
+  font-size: 1.3rem;
+}
+.btn-toggle[aria-pressed="true"] {
+  border-color: var(--teal-lit);
+  background: #123232;
+}
+.btn-toggle .state {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+}
+.btn-toggle[aria-pressed="true"] .state {
+  color: var(--teal-lit);
+}
+
+/* ---------- Layout ---------- */
+.layout {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.25rem clamp(1rem, 3vw, 2rem) 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 960px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 330px;
+    grid-template-areas:
+      "player classic"
+      "visuals classic"
+      "visuals playlist";
+    align-items: start;
+  }
+  .player {
+    grid-area: player;
+  }
+  .visuals {
+    grid-area: visuals;
+  }
+  .playlist {
+    grid-area: playlist;
+  }
+  .classic {
+    grid-area: classic;
+  }
+}
+
+.panel {
+  position: relative;
+  background: linear-gradient(to bottom, var(--panel-raised), var(--panel) 120px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem 1.25rem;
+  box-shadow: 0 10px 40px rgb(0 0 0 / 0.35);
+}
+.panel:focus {
+  outline: none;
+}
+.panel-title {
+  margin: 0 0 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold-lit);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.panel-title::before {
+  content: "";
+  width: 0.6rem;
+  height: 0.6rem;
+  transform: rotate(45deg);
+  background: var(--crimson-lit);
+  box-shadow: 0 0 8px var(--crimson-lit);
+}
+.visuals .panel-title::before {
+  background: var(--teal-lit);
+  box-shadow: 0 0 8px var(--teal-lit);
+}
+.playlist .panel-title::before,
+.classic .panel-title::before {
+  background: var(--gold-lit);
+  box-shadow: 0 0 8px var(--gold-lit);
+}
+.muted {
+  color: var(--muted);
+}
+.small {
+  font-size: 0.85rem;
+}
+
+/* ---------- Player ---------- */
+.now {
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  background: var(--bg-deep);
+  border: 1px solid var(--line);
+  margin-bottom: 1rem;
+}
+.now-label {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--teal-lit);
+}
+.now-title {
+  margin: 0.15rem 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.now-status {
+  margin: 0;
+  color: var(--muted);
+}
+
+.seek-row,
+.volume-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.time,
+.volume-row output {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  min-width: 3.4rem;
+  color: var(--gold-lit);
+}
+.seek-row .time:last-child {
+  text-align: right;
+}
+.volume-row label {
+  font-weight: 600;
+  min-width: 4.5rem;
+}
+
+.slider {
+  flex: 1;
+  min-width: 0;
+  height: 2.75rem; /* big hit area */
+  accent-color: var(--gold-lit);
+  background: transparent;
+  cursor: pointer;
+}
+.slider:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.transport {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.9rem;
+  margin: 0.8rem 0 1rem;
+}
+
+/* ---------- Visuals ---------- */
+.stage {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 45%, rgb(155 27 48 / 0.35), transparent 55%),
+    radial-gradient(circle at 30% 70%, rgb(31 110 110 / 0.3), transparent 50%),
+    var(--bg-deep);
+  border: 1px solid var(--line);
+}
+.stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.8s;
+}
+.stage.is-live canvas {
+  opacity: 1;
+}
+.stage-note {
+  position: absolute;
+  inset: auto 0 0 0;
+  margin: 0;
+  padding: 0.8rem 1rem;
+  color: var(--text);
+  text-align: center;
+  background: linear-gradient(to top, rgb(7 6 10 / 0.9), transparent);
+}
+.stage-note:empty {
+  display: none;
+}
+.stage:fullscreen {
+  aspect-ratio: auto;
+  border: 0;
+  border-radius: 0;
+}
+.preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+.preset-pick {
+  flex: 1 1 12rem;
+  display: flex;
+}
+.preset-pick select {
+  flex: 1;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 10px;
+  border: 2px solid var(--line);
+  background: var(--bg-deep);
+  color: var(--text);
+  font: inherit;
+}
+.preset-credit {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Playlist ---------- */
+.track-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 22rem;
+  overflow-y: auto;
+}
+.track-list li + li {
+  margin-top: 0.3rem;
+}
+.track {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.45rem 0.7rem;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.track:hover {
+  background: var(--panel-raised);
+  border-color: var(--line);
+}
+.track-num,
+.track-time {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+.track-name {
+  overflow-wrap: anywhere;
+}
+/* Current track: marked by more than color — a bar, bold text and an arrow. */
+.track[aria-current="true"] {
+  background: rgb(155 27 48 / 0.28);
+  border-color: var(--crimson-lit);
+  font-weight: 700;
+}
+.track[aria-current="true"] .track-num::before {
+  content: "▶ ";
+  color: var(--gold-lit);
+}
+
+/* ---------- Classic player (Webamp) ---------- */
+.classic-host {
+  position: relative;
+  width: 275px;
+  height: 420px;
+  margin: 0.6rem auto 0;
+}
+.classic .muted {
+  margin-top: 0;
+}
+
+/* ---------- Footer ---------- */
+.site-footer {
+  padding: 1.5rem clamp(1rem, 3vw, 2rem) 2.5rem;
+  text-align: center;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+}
+.site-footer p {
+  margin: 0.3rem 0;
+}
+
+/* ---------- Drop overlay ---------- */
+.drop-zone {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  pointer-events: none; /* let the drop reach the page (or Webamp) underneath */
+  background: rgb(7 6 10 / 0.75);
+  border: 4px dashed var(--gold-lit);
+}
+.drop-zone[hidden] {
+  display: none;
+}
+.drop-zone p {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  color: var(--gold-lit);
+}
+
+.notice {
+  margin: 1rem;
+  padding: 1rem;
+  border: 2px solid var(--crimson-lit);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+/* ---------- About dialog ---------- */
+.about {
+  max-width: min(40rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  padding: 1.5rem 1.75rem;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 20px 80px rgb(0 0 0 / 0.6);
+}
+.about::backdrop {
+  background: rgb(7 6 10 / 0.8);
+}
+.about h2 {
+  margin-top: 0;
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: var(--gold-lit);
+}
+.about h3 {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--teal-lit);
+}
+.about a {
+  color: var(--teal-lit);
+  text-underline-offset: 3px;
+}
+.credits li + li {
+  margin-top: 0.5rem;
+}
+.about-actions {
+  margin-top: 1.25rem;
+  text-align: right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
