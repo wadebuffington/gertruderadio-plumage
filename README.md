@@ -4,7 +4,7 @@ A free, skinnable music player and visual engine for the browser — built on th
 open Winamp/MilkDrop ecosystem (Webamp and Butterchurn), with an offline video
 renderer and shaped, non-rectangular skins on the way.
 
-**Redbird / Epiphany Press.** Free. No paywall. No advertising. No account.
+**A Gertrude Radio app, made by Redbird.** Free. No paywall. No advertising. No account.
 
 Status: just starting — see [docs/ROADMAP.md](docs/ROADMAP.md).
 

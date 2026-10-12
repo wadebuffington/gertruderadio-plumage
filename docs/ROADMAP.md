@@ -13,7 +13,7 @@ The proof of concept. Give the idea some life; don't build the cathedral.
 - [ ] **Open local files**: "Open files…" button and drag-and-drop. Audio stays on the device; nothing uploaded.
 - [ ] **Semantic control bar** (the accessible surface): Play/Pause, Previous, Next, Stop, seek slider, volume slider, current track name, and a real playlist list — all keyboard-operable with screen-reader names, wired to the same player state as Webamp.
 - [ ] Live-region announcement when the track changes.
-- [ ] Redbird page shell: title "Plumage", crimson/gold/teal palette, serif headings, works at phone width.
+- [ ] Gertrude Radio page shell: title "Plumage — by Gertrude Radio", dark look with crimson/gold/teal accents, works at phone width.
 - [ ] **About dialog** with full attribution (see CLAUDE.md) and the line "Free. No paywall. No advertising. No account."
 - [ ] Short README section: how to run it locally and how to try it.
 - [ ] Deployable `dist/` folder that runs as plain static files.

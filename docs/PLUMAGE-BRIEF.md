@@ -16,8 +16,10 @@ later, render frame-perfect music videos offline without screen capture.
   alongside Gertrude Console (a release-pipeline workbench). Console is deferred.
   The future connection between them is a **documented file format**, not an
   integration, so Plumage doesn't need to know Console exists.
-- **Redbird identity, no label branding.** Plumage must outlive any particular label.
-  Nothing in the chrome, About screen, or exported video advertises anything.
+- **A Gertrude Radio app.** (Updated Oct 2026 — this reverses the August plan to keep
+  it label-free.) Plumage carries Gertrude Radio branding, with Redbird credited as
+  maker. Still no advertising, and nothing stamped onto exported video unless the
+  user chooses it.
 - **Browser-based and cross-platform.** Runs in a modern browser on desktop and mobile.
   Video export (later) works best in Chromium browsers.
 - **Installable later as a web app** (manifest + icons + service worker). Native

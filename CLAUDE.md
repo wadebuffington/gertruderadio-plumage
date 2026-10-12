@@ -2,19 +2,20 @@
 
 Plumage is a free, skinnable music player and visual engine that runs in the
 browser. It is built on the open Winamp/MilkDrop ecosystem (Webamp + Butterchurn),
-carries the **Redbird** identity, and will eventually grow an offline video
+is a **Gertrude Radio** app, and will eventually grow an offline video
 renderer and a surface system that is not required to be a rectangle.
 
-Author: Eddie (Redbird / Epiphany Press). Free. No paywall. No advertising. No account.
+Author: Eddie (Redbird), released under the Gertrude Radio label. Free. No paywall. No advertising. No account.
 
 Read `docs/PLUMAGE-BRIEF.md` for the full set of decisions and `docs/ROADMAP.md`
 for milestone order. **Only work on the current milestone** (see ROADMAP).
 
 ## Hard rules
 
-1. **Branding.** Redbird identity only. No Gertrude Radio branding anywhere — not
-   in the UI, the About screen, page titles, exported files, or metadata. (The repo
-   name is historical; the product is just "Plumage".)
+1. **Branding.** Plumage is a Gertrude Radio app: "Plumage — by Gertrude Radio".
+   Gertrude Radio branding is welcome in the UI, About screen and page title, with
+   Redbird credited as the maker. Keep it tasteful — no ads, no pop-ups, nothing
+   stamped over the user's own music or exported video unless they choose it.
 2. **Never call it Winamp.** Do not use the Winamp name, logo, or Nullsoft sample
    audio. Webamp's code is MIT; the Winamp name and interface design remain
    Nullsoft's. Describe Plumage as "built on Webamp and Butterchurn."
@@ -41,11 +42,16 @@ for milestone order. **Only work on the current milestone** (see ROADMAP).
 7. **Static site.** No backend. The build output must deploy as plain static files
    (target: Cloudflare Pages). A small Vite setup is fine; keep dependencies few.
 
-## House look (Redbird)
+## Look (Gertrude Radio)
 
-- Crimson `#9B1B30`, gold `#B8860B`, teal `#1F6E6E`, ink `#1A1A1A`, warm off-white paper.
-- Serif type for headings/About (Times / Georgia-style stack); a clean UI face is fine for small controls.
-- Check text/background contrast meets AA in both light and dark.
+- Dark-first: modern, inviting to people into tech and music — hacker / futuristic
+  "underground cathedral" mood, with stained-glass moments of color. Not churchy,
+  not the light Epiphany Press booklet style.
+- Accent palette (the stained glass): crimson `#9B1B30`, gold `#B8860B`, teal `#1F6E6E`,
+  on deep near-black backgrounds. Brighten accents as needed for contrast on dark.
+- Headings can carry a bit of character; controls stay clean and legible.
+- Text/background contrast must meet AA. Eddie has limited vision — generous sizes,
+  strong focus outlines, nothing that relies on color alone.
 
 ## Working style
 

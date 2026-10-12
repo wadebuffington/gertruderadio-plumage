@@ -19,8 +19,10 @@ Build **Milestone 1 only** ("It plays and it glows"). Specifically:
    seek, volume, current track name, and a real playlist list. Everything works from
    the keyboard and has proper screen-reader names, and it controls the same player
    as Webamp.
-5. Wrap it in the Redbird look (crimson, gold, teal, serif headings), titled "Plumage",
-   with an About dialog carrying the full attribution list from CLAUDE.md.
+5. Wrap it in the Gertrude Radio look described in CLAUDE.md — dark, modern,
+   "underground cathedral" with crimson/gold/teal stained-glass accents — titled
+   "Plumage — by Gertrude Radio", with an About dialog carrying the full attribution
+   list from CLAUDE.md.
 6. Run it, try it with a test audio file, fix what's broken, and commit.
 
 Then tell me in plain language how to run it on my computer and what to try.
