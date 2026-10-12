@@ -24,6 +24,21 @@ To make the deployable version: `npm run build`. That writes a `dist/` folder of
 plain static files you can upload to Cloudflare Pages (or any static host).
 `npm run preview` serves that folder locally so you can check it first.
 
+## Put it on the web (Cloudflare Pages)
+
+Cloudflare builds Plumage from this GitHub repo — nothing to install on your computer.
+In the Cloudflare dashboard: **Workers & Pages → Create → Pages → Connect to Git**,
+pick `gertruderadio-plumage`, then use these settings:
+
+| Setting | Value |
+|---|---|
+| Production branch | the branch with the latest work (today: `claude/epic-cannon-s65nrc`) |
+| Framework preset | None (or Vite) |
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+
+Every new push to that branch updates the site automatically.
+
 ## Try it
 
 1. Press **Open files…** and pick one or more MP3s (or drag them anywhere onto the

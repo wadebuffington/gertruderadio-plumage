@@ -36,3 +36,6 @@ Small decisions made during the build that the brief did not cover. Newest at th
   - **Gertrude Radio mark.** A small original rose-window emblem (`public/favicon.svg`)
     in crimson/gold/teal, used as the icon and in the header. Placeholder until Eddie
     has a real Gertrude Radio mark he wants used.
+- 2026-10-12 — Hosting: Cloudflare Pages connected to the GitHub repo (it runs
+  `npm run build` and serves `dist/`), so Eddie never has to install Node. `.node-version`
+  pins Node 22 for Cloudflare's build.
