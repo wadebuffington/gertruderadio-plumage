@@ -36,7 +36,7 @@ watch the visuals move, operate everything from the keyboard, and read the About
 
 ## Milestone 4 — Shaped surface (experiment)
 
-- [ ] Prototype a non-rectangular player outline driving the same controls.
+- [ ] Prototype a non-rectangular player outline driving the same controls, starting from Eddie's chosen cardinal concepts A ("Flight Form") and D — see `docs/design/README.md`.
 - [ ] Answer the "how is a shape defined?" open question with something that works.
 
 ## Later
