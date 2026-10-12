@@ -8,6 +8,8 @@ renderer and shaped, non-rectangular skins on the way.
 
 Status: Milestone 1, "It plays and it glows" — see [docs/ROADMAP.md](docs/ROADMAP.md).
 
+**Try it live:** <https://gertruderadio-plumage.pages.dev>
+
 ## Run it on your computer
 
 You need [Node.js](https://nodejs.org/) (version 20 or newer) installed once.
