@@ -22,6 +22,12 @@ export function classicSize(doubled) {
   return doubled ? { width: 550, height: 696 } : { width: 275, height: 406 };
 }
 
+/** Skins we ship. Redbird is our own artwork (tools/redbird-skin). */
+export const SKINS = [
+  { id: "redbird", name: "Redbird (Plumage)", url: "./skins/redbird.wsz" },
+  { id: "base", name: "Webamp default", url: null },
+];
+
 export function createPlayer({ doubleSize = false } = {}) {
   const webamp = new Webamp({
     // Our own shortcuts live in the semantic layer; Webamp's global hotkeys
@@ -32,6 +38,9 @@ export function createPlayer({ doubleSize = false } = {}) {
     // It can still be switched from Webamp's own Options menu.
     enableDoubleSizeMode: doubleSize,
     windowLayout: classicLayout(doubleSize),
+    initialSkin: { url: SKINS[0].url },
+    // Also offered in Webamp's own Options → Skins menu.
+    availableSkins: SKINS.filter((s) => s.url).map(({ url, name }) => ({ url, name })),
   });
 
   const listeners = new Set();
@@ -104,6 +113,23 @@ export function createPlayer({ doubleSize = false } = {}) {
         ),
         absolute: false,
       });
+    },
+
+    /** Switch the classic skin: one of SKINS, or a skin file from the user's device. */
+    async setSkin(skin) {
+      if (skin.url) webamp.setSkinFromUrl(skin.url);
+      else webamp.store.dispatch({ type: "LOAD_DEFAULT_SKIN" });
+      await webamp.skinIsLoaded();
+    },
+    async loadSkinFile(file) {
+      // An object URL keeps the file on this device; nothing is uploaded.
+      const url = URL.createObjectURL(file);
+      try {
+        webamp.setSkinFromUrl(url);
+        await webamp.skinIsLoaded();
+      } finally {
+        URL.revokeObjectURL(url);
+      }
     },
 
     togglePlay() {

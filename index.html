@@ -138,6 +138,19 @@
       <!-- The classic skin surface (Webamp). Mouse-driven; the Player panel above does everything it does. -->
       <section class="panel classic" aria-labelledby="classic-heading">
         <h2 id="classic-heading" class="panel-title">Classic player</h2>
+        <div class="skin-row">
+          <label class="skin-pick">
+            <span>Skin</span>
+            <select id="skin-select"></select>
+          </label>
+          <button type="button" id="skin-load" class="btn btn-small">Load a skin file…</button>
+          <input type="file" id="skin-input" accept=".wsz,.zip" hidden />
+        </div>
+        <p class="muted small skin-museum">
+          Thousands of classic skins (.wsz files) are at the
+          <a href="https://skins.webamp.org/" target="_blank" rel="noopener noreferrer">Webamp Skin Museum<span class="visually-hidden"> (opens in a new tab)</span></a>.
+          Download one, then press <strong>Load a skin file</strong>. Those skins belong to their own artists.
+        </p>
         <p class="muted small">Drag its windows around. The Player panel controls the same music.</p>
         <button type="button" id="classic-reopen" class="btn btn-small" hidden>Show classic player</button>
         <div id="classic-host" class="classic-host"></div>
@@ -186,6 +199,7 @@
           butterchurn-presets collection (MIT License).
         </li>
         <li><strong>Justin Frankel and Nullsoft</strong> — inspiration only; not a code dependency.</li>
+        <li><strong>Redbird skin</strong> — original artwork by Redbird for Gertrude Radio.</li>
       </ul>
       <p class="small">
         Plumage is not Winamp and is not affiliated with Winamp or Nullsoft.

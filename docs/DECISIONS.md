@@ -51,3 +51,20 @@ Small decisions made during the build that the brief did not cover. Newest at th
     Webamp; our own Playlist panel is the large, readable one.)
   - **Layout:** two independent columns so tall panels no longer leave gaps; the side
     column is 600px to hold the double-size player.
+- 2026-10-12 — Milestone 2 (Eddie chose option C: a working skin now, his art later):
+  - **Redbird skin is drawn by a script** (`tools/redbird-skin/build.py`, Python + Pillow), pixel by
+    pixel, so it is plainly original — no traced or recoloured skin assets. It writes
+    `public/skins/redbird.wsz`; the site build only uses that file. Sprite positions come from
+    Webamp's own sprite map. Palette after concepts A and D: gunmetal, crimson trim, orange LCD,
+    gold labels.
+  - **Contrast check lives in the generator**: every text/background pair is measured and the
+    script refuses to build below 4.5:1. Inactive-window titles are deliberately dim (WCAG exempts
+    inactive UI).
+  - **Redbird is now the default skin**, so the "WINAMP" title bars no longer show by default. The
+    picker still offers "Webamp default" (it ships inside the Webamp library, not as a file of ours)
+    for comparison; Webamp's own Options → Skins menu lists both too.
+  - **Loading a skin file** uses a local object URL — the file never leaves the device. Only `.wsz`
+    / `.zip` are accepted. The choice isn't remembered between visits yet (simple first).
+  - **Eddie's A and D concepts are shaped skins, not classic ones.** The classic format is a fixed
+    rectangle with fixed button spots, so A/D belong to Milestone 4. Art checklist for them:
+    `docs/design/SHAPED-SKIN-ART.md`.

@@ -3,7 +3,7 @@
 One milestone at a time. Each one works, gets tried by Eddie, and gets committed
 before the next begins.
 
-## Milestone 1 — "It plays and it glows" (CURRENT)
+## Milestone 1 — "It plays and it glows" (DONE)
 
 The proof of concept. Give the idea some life; don't build the cathedral.
 
@@ -23,12 +23,14 @@ watch the visuals move, operate everything from the keyboard, and read the About
 
 *Built 2026-10-12; waiting on Eddie to try it before Milestone 2 starts.*
 
-## Milestone 2 — A Redbird skin
+## Milestone 2 — A Redbird skin (CURRENT)
 
-- [ ] One original Redbird classic skin (our own artwork, no copied assets).
-- [ ] Skin switcher (default ↔ Redbird) plus "load a skin file" from the user's device.
-- [ ] Link out to the Webamp skin museum.
-- [ ] Contrast check on our skin.
+- [x] One original Redbird classic skin (our own artwork, no copied assets). *First version drawn in code
+      (`tools/redbird-skin/build.py`); Eddie's artwork can replace it later.*
+- [x] Skin switcher (default ↔ Redbird) plus "load a skin file" from the user's device.
+- [x] Link out to the Webamp skin museum.
+- [x] Contrast check on our skin (built into the skin generator; the build stops if a pair fails AA).
+- [ ] Eddie tries it and signs off on the look.
 
 ## Milestone 3 — Offline renderer (first cut)
 

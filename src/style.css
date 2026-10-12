@@ -514,6 +514,34 @@ body {
 .classic .muted {
   margin-top: 0;
 }
+.skin-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+.skin-pick {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  flex: 1 1 14rem;
+}
+.skin-pick select {
+  flex: 1;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 10px;
+  border: 2px solid var(--line);
+  background: var(--bg-deep);
+  color: var(--text);
+  font: inherit;
+}
+.skin-museum a {
+  color: var(--teal-lit);
+  text-underline-offset: 3px;
+}
 
 /* ---------- Footer ---------- */
 .site-footer {

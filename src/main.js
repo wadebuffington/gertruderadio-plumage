@@ -1,6 +1,6 @@
 import "./style.css";
 import Webamp from "webamp";
-import { createPlayer, classicSize } from "./player.js";
+import { createPlayer, classicSize, SKINS } from "./player.js";
 import { createControls } from "./controls.js";
 import { createVisuals } from "./visuals.js";
 import { setupFileOpening } from "./files.js";
@@ -61,6 +61,39 @@ function start() {
   reopenBtn.addEventListener("click", () => {
     player.webamp.reopen();
     reopenBtn.hidden = true;
+  });
+
+  // --- Skins ---------------------------------------------------------------
+  const skinSelect = $("#skin-select");
+  const skinInput = $("#skin-input");
+  skinSelect.append(...SKINS.map((s) => new Option(s.name, s.id)));
+  skinSelect.addEventListener("change", async () => {
+    const skin = SKINS.find((s) => s.id === skinSelect.value);
+    if (!skin) return; // "your skin" entry: already loaded
+    await player.setSkin(skin);
+    say(`Classic player skin: ${skin.name}.`);
+  });
+  $("#skin-load").addEventListener("click", () => skinInput.click());
+  skinInput.addEventListener("change", async () => {
+    const file = skinInput.files[0];
+    skinInput.value = "";
+    if (!file) return;
+    if (!/\.(wsz|zip)$/i.test(file.name)) {
+      say("That isn't a skin file. Classic skins end in .wsz.");
+      return;
+    }
+    try {
+      await player.loadSkinFile(file);
+    } catch {
+      say(`Couldn't read ${file.name} as a skin.`);
+      return;
+    }
+    const name = file.name.replace(/\.(wsz|zip)$/i, "");
+    let mine = skinSelect.querySelector('option[value="file"]');
+    if (!mine) skinSelect.append((mine = new Option("", "file")));
+    mine.textContent = `Your skin: ${name}`;
+    skinSelect.value = "file";
+    say(`Classic player skin: ${name}.`);
   });
 
   // --- Opening files ------------------------------------------------------

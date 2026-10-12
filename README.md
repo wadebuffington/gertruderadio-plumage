@@ -41,6 +41,12 @@ pick `gertruderadio-plumage`, then use these settings:
 
 Every new push to that branch updates the site automatically.
 
+## The Redbird skin
+
+The classic player's default skin is our own, drawn by a script. To change it, edit
+`tools/redbird-skin/build.py` and run `python3 tools/redbird-skin/build.py` (needs Python 3 and
+`pip install pillow`). It checks text contrast first and writes `public/skins/redbird.wsz`.
+
 ## Try it
 
 1. Press **Open files…** and pick one or more MP3s (or drag them anywhere onto the

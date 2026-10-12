@@ -34,6 +34,7 @@ is just its label, not part of our branding.
 - Final artwork will need to be redrawn or cleaned up as original art at proper
   resolution (with layers for buttons' normal/hover/pressed/focus states).
 - Check contrast of the orange-on-dark display text against AA.
+- **Art checklist for preparing A and D:** [SHAPED-SKIN-ART.md](SHAPED-SKIN-ART.md).
 
 ## Eddie's favorite classic skins — what to learn from them (October 2026)
 
