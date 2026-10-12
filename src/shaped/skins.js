@@ -10,10 +10,41 @@
 //   screen  {x, y, w, h} | {x, y, r}   live text/graphics drawn by the app
 //   led     {x, y, r}              a light that glows for a state
 //
+// Extras: a button's `face` {r, from, to} lays a live cap over the painted
+// face, so its icon can change (play ↔ pause). A knob's `slots` paints a ring
+// of backlit slots between radii `inner` and `outer`, lit up to its value;
+// `ring` is the radius inside which the knob ignores the pointer (another
+// control sits there).
+//
 // `action` says what it does (see src/shaped/shaped.js). Prototype art: Eddie's
 // cardinal concepts A and D, cut out by tools/shaped/cutout.py.
 
 export const SHAPED_SKINS = [
+  {
+    id: "d",
+    name: "Perched (concept D)",
+    art: "./shaped/concept-d.webp",
+    width: 798,
+    height: 977,
+    controls: [
+      { type: "button", action: "previous", x: 260, y: 318, r: 22 },
+      { type: "button", action: "shuffle", x: 313, y: 318, r: 22 },
+      { type: "button", action: "next", x: 365, y: 318, r: 22 },
+      { type: "button", action: "repeat", x: 418, y: 318, r: 22 },
+      { type: "screen", kind: "nowplaying", x: 182, y: 362, w: 308, h: 238 },
+      { type: "slider", action: "seek", x1: 196, y1: 628, x2: 478, y2: 628, w: 20 },
+      { type: "button", action: "open", x: 537, y: 628, r: 19 },
+      {
+        type: "knob", action: "volume", x: 590, y: 492, r: 100, ring: 66,
+        slots: { inner: 69, outer: 91, r: 80, count: 21, len: 12, width: 4.5 },
+      },
+      { type: "button", action: "togglePlay", x: 590, y: 492, r: 46, face: { r: 33, from: "#c4302c", to: "#5e0d14" } },
+      { type: "button", action: "rewind", x: 263, y: 688, r: 26 },
+      { type: "button", action: "togglePlay", x: 338, y: 690, r: 33, face: { r: 24, from: "#6e2024", to: "#3a0e10" } },
+      { type: "button", action: "forward", x: 412, y: 688, r: 26 },
+      { type: "button", action: "stop", x: 475, y: 675, r: 18 },
+    ],
+  },
   {
     id: "a",
     name: "Flight Form (concept A)",
@@ -34,31 +65,9 @@ export const SHAPED_SKINS = [
       { type: "screen", kind: "meter", x: 312, y: 560, w: 268, h: 30 },
       { type: "button", action: "stop", x: 322, y: 628, r: 15 },
       { type: "button", action: "rewind", x: 378, y: 640, r: 25 },
-      { type: "button", action: "togglePlay", x: 445, y: 640, r: 33 },
+      { type: "button", action: "togglePlay", x: 445, y: 640, r: 33, face: { r: 24, from: "#6e2024", to: "#3a0e10" } },
       { type: "button", action: "forward", x: 512, y: 640, r: 25 },
       { type: "button", action: "open", x: 568, y: 628, r: 15 },
-    ],
-  },
-  {
-    id: "d",
-    name: "Perched (concept D)",
-    art: "./shaped/concept-d.webp",
-    width: 798,
-    height: 977,
-    controls: [
-      { type: "button", action: "previous", x: 260, y: 318, r: 22 },
-      { type: "button", action: "shuffle", x: 313, y: 318, r: 22 },
-      { type: "button", action: "next", x: 365, y: 318, r: 22 },
-      { type: "button", action: "repeat", x: 418, y: 318, r: 22 },
-      { type: "screen", kind: "nowplaying", x: 182, y: 362, w: 308, h: 238 },
-      { type: "slider", action: "seek", x1: 196, y1: 628, x2: 478, y2: 628, w: 20 },
-      { type: "button", action: "open", x: 537, y: 628, r: 19 },
-      { type: "knob", action: "volume", x: 590, y: 492, r: 100, ring: 52 },
-      { type: "button", action: "togglePlay", x: 590, y: 492, r: 46 },
-      { type: "button", action: "rewind", x: 263, y: 688, r: 26 },
-      { type: "button", action: "togglePlay", x: 338, y: 690, r: 33 },
-      { type: "button", action: "forward", x: 412, y: 688, r: 26 },
-      { type: "button", action: "stop", x: 475, y: 675, r: 18 },
     ],
   },
 ];

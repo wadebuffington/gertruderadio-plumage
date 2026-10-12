@@ -107,3 +107,19 @@ Small decisions made during the build that the brief did not cover. Newest at th
   - The page now carries `<meta name="robots" content="noindex">`, asking search engines not to list it
     while it's experimental. Remove it when Plumage is ready to be found.
   - The chosen bird (A or D) is remembered in the browser (localStorage); nothing leaves the device.
+- 2026-10-12 — Eddie tried both birds; **Perched (D) is the default** (A stays in the picker).
+  His notes, and what changed:
+  - **Hover labels** on every shaped control (also shown on keyboard focus, with the value for
+    sliders/dials). Big text, dismissed with Escape, stays while hovered (WCAG 1.4.13). Touch
+    screens don't hover; screen readers already get the names.
+  - **Play buttons show the real state**: a live cap over each painted play/pause face shows ▶ or ❚❚.
+  - **Volume ring = backlit slots in the metal** (21 slots round the dark band, lit up to the volume,
+    flickering slightly with the music) instead of a wide orange band. The art's four fixed lit
+    slots are painted over so every slot is live.
+  - **Light colours**: Amber (default), Green (terminal), Blue, White, or "your own" (colour
+    picker). Screens, spectrum, sliders, lights and the volume slots all follow; non-amber
+    themes get matching dark glass.
+  - **Bird colour**: Natural red, Match the lights, or your own. Done by turning the art's hue (CSS
+    hue-rotate); pale picks give a silver bird. The painted icons turn with it — fine for the
+    prototype; separate button art (see SHAPED-SKIN-ART.md) will fix that in the redraw.
+  - Choices are remembered in this browser only.

@@ -5,11 +5,32 @@
 // screens the app draws. It drives the same player as everything else.
 import { formatTime } from "../controls.js";
 
-const LCD = "#ffa53a";
-const LCD_DIM = "rgba(255, 165, 58, 0.16)";
-const GLASS_TOP = "#3b0c0d";
-const GLASS_BOTTOM = "#170405";
 const MONO = 'ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+
+// ------------------------------------------------------------ light colours
+const hexRgb = (h) => {
+  const n = parseInt(h.replace("#", "").padEnd(6, "0").slice(0, 6), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+const css = ([r, g, b], a = 1) => (a === 1 ? `rgb(${r} ${g} ${b})` : `rgb(${r} ${g} ${b} / ${a})`);
+
+/** Everything the screens and lights draw with, derived from one light colour. */
+export function lightPalette(hex) {
+  const c = hexRgb(hex);
+  const amber = hex.toLowerCase() === "#ffa53a";
+  return {
+    hex,
+    lcd: css(c),
+    dim: css(c, 0.16),
+    line: css(c, 0.35),
+    hot: css(mix(c, [255, 255, 255], 0.45)),
+    // Amber keeps the red glass of Eddie's art; other colours get their own dark glass.
+    glassTop: amber ? "#3b0c0d" : css(mix(c, [0, 0, 0], 0.82)),
+    glassMid: amber ? "#4a1112" : css(mix(c, [0, 0, 0], 0.76)),
+    glassBottom: amber ? "#170405" : css(mix(c, [0, 0, 0], 0.93)),
+  };
+}
 
 /** What each action does, and how its control describes itself. */
 function actions({ player, visuals, presets, openFiles, say }) {
@@ -49,12 +70,18 @@ function actions({ player, visuals, presets, openFiles, say }) {
   };
 }
 
+const ICONS = {
+  play: '<svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></svg>',
+  pause: '<svg viewBox="0 0 24 24"><rect x="6.5" y="5.5" width="4" height="13" rx="1"/><rect x="13.5" y="5.5" width="4" height="13" rx="1"/></svg>',
+};
+
 const ACTION_NAMES = {
   togglePlay: "play-pause", nextPreset: "visual", previous: "prev", next: "next",
 };
 
 export function createShapedPlayer({ root, player, visuals, presets, openFiles, say }) {
   const ACT = actions({ player, visuals, presets, openFiles, say });
+  let P = lightPalette("#ffa53a");
   let skin = null;
   let parts = []; // { el, control, act, update(state) }
   let screens = [];
@@ -84,9 +111,26 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
     el.className = `sh-ctl sh-btn sh-${ACTION_NAMES[c.action] ?? c.action}`;
     placeCircle(el, c);
     el.addEventListener("click", () => act.run());
+    // A live cap over the painted button face, so the icon can change (▶ / ❚❚).
+    let face = null;
+    if (c.face) {
+      face = el.appendChild(document.createElement("span"));
+      face.className = "sh-face";
+      face.setAttribute("aria-hidden", "true");
+      face.style.width = `${(c.face.r / c.r) * 100}%`;
+      face.style.setProperty("--face-from", c.face.from);
+      face.style.setProperty("--face-to", c.face.to);
+    }
     return {
       el,
       update(s) {
+        if (face) {
+          const icon = c.action === "togglePlay" ? (s.status === "PLAYING" ? "pause" : "play") : c.face.icon;
+          if (face.dataset.icon !== icon) {
+            face.dataset.icon = icon;
+            face.innerHTML = ICONS[icon] ?? "";
+          }
+        }
         el.setAttribute("aria-label", act.label(s));
         if (act.pressed) el.setAttribute("aria-pressed", String(!!act.pressed(s)));
         if (act.enabled) el.disabled = !act.enabled(s);
@@ -106,7 +150,7 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
     let preview = null; // value while dragging a commit-on-release slider
     let dragging = false;
 
-    let fill, thumb, dot;
+    let fill, thumb, dot, ringCanvas;
     if (kind === "slider") {
       const dx = c.x2 - c.x1;
       const dy = c.y2 - c.y1;
@@ -126,13 +170,17 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
       thumb.className = "sh-thumb";
     } else {
       placeCircle(el, c);
-      if (c.ring) {
+      if (c.slots) {
+        // Backlit slots cut into the metal ring: they light up to the volume
+        // and flicker a little with the music.
         el.classList.add("is-ring");
-        // The glowing arc lives in its own layer so the focus ring stays a clean circle.
-        el.appendChild(document.createElement("span")).className = "sh-ring-arc";
+        ringCanvas = el.appendChild(document.createElement("canvas"));
+        ringCanvas.className = "sh-ring-slots";
+        ringCanvas.setAttribute("aria-hidden", "true");
+      } else {
+        dot = el.appendChild(document.createElement("span"));
+        dot.className = "sh-knob-dot";
       }
-      dot = el.appendChild(document.createElement("span"));
-      dot.className = "sh-knob-dot";
     }
 
     const fraction = (v, s) => {
@@ -158,10 +206,11 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
           fill.style[reversed ? "right" : "left"] = "0";
           thumb.style.left = `${along * 100}%`;
         }
+      } else if (ringCanvas) {
+        drawSlots(ringCanvas, c, f);
       } else {
         // Knob sweep: 270°, from 7:30 round to 4:30, like a hi-fi dial.
         el.style.setProperty("--turn", `${-135 + f * 270}deg`);
-        el.style.setProperty("--amount", `${f * 270}deg`);
       }
     }
 
@@ -251,6 +300,53 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
     return { el, update };
   }
 
+  /** Paint the dark band of the ring, then the slots: lit up to `f`, the rest dark holes. */
+  function drawSlots(cv, c, f) {
+    const { w } = sizeCanvas(cv);
+    const ctx = cv.getContext("2d");
+    const k = w / (c.r * 2); // canvas px per art px
+    const cx = w / 2;
+    const { inner, outer, r, count, len, width } = c.slots;
+    ctx.clearRect(0, 0, w, w);
+    // Fresh metal band over the painted one (which had four fixed lights).
+    const band = ctx.createRadialGradient(cx, cx, inner * k, cx, cx, outer * k);
+    band.addColorStop(0, "#1a1a1e");
+    band.addColorStop(0.5, "#2c2c31");
+    band.addColorStop(1, "#151518");
+    ctx.beginPath();
+    ctx.arc(cx, cx, outer * k, 0, Math.PI * 2);
+    ctx.arc(cx, cx, inner * k, 0, Math.PI * 2, true);
+    ctx.fillStyle = band;
+    ctx.fill();
+    const lit = Math.round(f * count);
+    const pulse = 0.7 + 0.3 * level;
+    ctx.lineCap = "round";
+    for (let i = 0; i < count; i++) {
+      const a = ((-135 + (i / (count - 1)) * 270 - 90) * Math.PI) / 180;
+      const x1 = cx + Math.cos(a) * (r - len / 2) * k;
+      const y1 = cx + Math.sin(a) * (r - len / 2) * k;
+      const x2 = cx + Math.cos(a) * (r + len / 2) * k;
+      const y2 = cx + Math.sin(a) * (r + len / 2) * k;
+      ctx.lineWidth = width * k;
+      if (i < lit) {
+        ctx.globalAlpha = pulse;
+        ctx.strokeStyle = P.lcd;
+        ctx.shadowColor = P.lcd;
+        ctx.shadowBlur = width * k * 2.2;
+      } else {
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = "#08080a"; // an unlit hole
+        ctx.shadowBlur = 0;
+      }
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+  }
+
   function makeScreen(c) {
     const canvas = document.createElement("canvas");
     canvas.className = `sh-screen sh-screen-${c.kind}`;
@@ -290,13 +386,13 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
 
   function glass(ctx, w, h) {
     const g = ctx.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, GLASS_TOP);
-    g.addColorStop(1, GLASS_BOTTOM);
+    g.addColorStop(0, P.glassTop);
+    g.addColorStop(1, P.glassBottom);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
   }
 
-  function lcdText(ctx, text, x, y, size, align = "center", color = LCD) {
+  function lcdText(ctx, text, x, y, size, align = "center", color = P.lcd) {
     ctx.font = `700 ${size}px ${MONO}`;
     ctx.textAlign = align;
     ctx.textBaseline = "middle";
@@ -338,13 +434,13 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
     ctx.arc(w / 2, h / 2, w / 2, 0, Math.PI * 2);
     ctx.clip();
     const g = ctx.createRadialGradient(w / 2, h * 0.35, w * 0.05, w / 2, h / 2, w / 2);
-    g.addColorStop(0, "#4a1112");
-    g.addColorStop(1, GLASS_BOTTOM);
+    g.addColorStop(0, P.glassMid);
+    g.addColorStop(1, P.glassBottom);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
     lcdText(ctx, s.current ? STATUS[s.status] ?? "" : "PLUMAGE", w / 2, h * 0.25, w * 0.085);
     lcdText(ctx, formatTime(s.timeElapsed).padStart(5, "0"), w / 2, h * 0.5, w * 0.27);
-    ctx.fillStyle = "rgba(255,165,58,0.35)";
+    ctx.fillStyle = P.line;
     ctx.fillRect(w * 0.22, h * 0.66, w * 0.56, Math.max(1, w * 0.006));
     marquee(ctx, s.current ? s.current.name : "BY GERTRUDE RADIO", w / 2, h * 0.76, w * 0.62, w * 0.075, t);
     ctx.restore();
@@ -362,7 +458,7 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
     for (let i = 0; i < n; i++) {
       const hot = i / n;
       const on = i < lit;
-      ctx.fillStyle = on ? (hot > 0.85 ? "#ff5a4a" : hot > 0.6 ? "#ffd166" : LCD) : LCD_DIM;
+      ctx.fillStyle = on ? (hot > 0.6 ? P.hot : P.lcd) : P.dim;
       if (on) {
         ctx.shadowColor = ctx.fillStyle;
         ctx.shadowBlur = h * 0.3;
@@ -380,7 +476,7 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
     ctx.roundRect(0, 0, w, h, w * 0.04);
     ctx.clip();
     glass(ctx, w, h);
-    lcdText(ctx, "NOW PLAYING", w / 2, h * 0.1, h * 0.075, "center", "#ffc46b");
+    lcdText(ctx, "NOW PLAYING", w / 2, h * 0.1, h * 0.075, "center", P.hot);
     // Spectrum: 10 columns of LED segments.
     const cols = bars.length;
     const rows = 12;
@@ -395,7 +491,7 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
       for (let r = 0; r < rows; r++) {
         const on = r < litRows;
         const y = top + areaH - (r + 1) * rh;
-        ctx.fillStyle = on ? (r > rows * 0.8 ? "#ffd166" : LCD) : LCD_DIM;
+        ctx.fillStyle = on ? (r > rows * 0.8 ? P.hot : P.lcd) : P.dim;
         ctx.fillRect(left + c * cw + cw * 0.14, y + rh * 0.18, cw * 0.72, rh * 0.64);
       }
     }
@@ -451,6 +547,7 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
     }
     // Slider positions move with playback (the seek bar), so refresh them here too.
     for (const p of parts) if (p.el.getAttribute("role") === "slider") p.update(s);
+    if (tipFor && !tip.hidden) tip.textContent = tipText(tipFor);
     raf = requestAnimationFrame(frame);
   }
   const startLoop = () => {
@@ -464,13 +561,99 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
   }).observe(root);
   document.addEventListener("visibilitychange", startLoop);
 
+  // ------------------------------------------------------------ hover labels
+  // A big, readable label over the control under the mouse or keyboard focus.
+  // It stays while the pointer is over it, and Escape hides it (WCAG 1.4.13).
+  const tip = document.createElement("div");
+  tip.className = "sh-tip";
+  tip.setAttribute("aria-hidden", "true"); // controls already have names
+  tip.hidden = true;
+  let tipFor = null;
+  let hideTimer = 0;
+  const tipText = (el) => {
+    const label = el.getAttribute("aria-label") ?? "";
+    const value = el.getAttribute("aria-valuetext");
+    return value ? `${label}: ${value}` : label;
+  };
+  function showTip(el) {
+    clearTimeout(hideTimer);
+    tipFor = el;
+    tip.textContent = tipText(el);
+    tip.hidden = false;
+    const box = el.getBoundingClientRect();
+    const host = root.getBoundingClientRect();
+    tip.style.left = `${box.left + box.width / 2 - host.left}px`;
+    tip.style.top = `${box.top - host.top}px`;
+  }
+  function hideTip(soon) {
+    clearTimeout(hideTimer);
+    const go = () => {
+      tip.hidden = true;
+      tipFor = null;
+    };
+    if (soon) hideTimer = setTimeout(go, 200);
+    else go();
+  }
+  root.addEventListener("pointerover", (e) => {
+    const el = e.target.closest(".sh-ctl");
+    if (el && e.pointerType === "mouse") showTip(el);
+  });
+  root.addEventListener("pointerout", (e) => {
+    const el = e.target.closest(".sh-ctl");
+    if (el && !el.contains(e.relatedTarget) && e.relatedTarget !== tip) hideTip(true);
+  });
+  tip.addEventListener("pointerenter", () => clearTimeout(hideTimer));
+  tip.addEventListener("pointerleave", () => hideTip(true));
+  root.addEventListener("focusin", (e) => {
+    const el = e.target.closest(".sh-ctl");
+    if (el && el.matches(":focus-visible")) showTip(el);
+  });
+  root.addEventListener("focusout", () => hideTip(false));
+  // Escape hides it wherever focus is (a mouse hover leaves focus elsewhere).
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !tip.hidden) hideTip(false);
+  });
+
   function updateAll(s) {
     for (const p of parts) p.update(s);
     for (const l of leds) l.el.classList.toggle("is-on", l.state === "playing" && s.status === "PLAYING");
+    if (tipFor && !tip.hidden) tip.textContent = tipText(tipFor);
   }
   player.subscribe((s) => skin && updateAll(s));
 
+  let birdFilter = "";
   return {
+    /** Light colour for screens, lights and sliders (any CSS hex colour). */
+    setLights(hex) {
+      P = lightPalette(hex);
+      root.style.setProperty("--sh-light", P.lcd);
+      root.style.setProperty("--sh-light-hot", P.hot);
+      if (skin) updateAll(player.state);
+    },
+    /**
+     * Recolour the bird. `hex` null = natural red. Works by turning the hue
+     * (red → the chosen colour); pale colours give a silvery bird.
+     */
+    setBirdColor(hex) {
+      if (!hex) birdFilter = "";
+      else {
+        const [r, g, b] = hexRgb(hex).map((v) => v / 255);
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const sat = max === 0 ? 0 : (max - min) / max;
+        let hue = 0;
+        if (max !== min) {
+          if (max === r) hue = 60 * (((g - b) / (max - min)) % 6);
+          else if (max === g) hue = 60 * ((b - r) / (max - min) + 2);
+          else hue = 60 * ((r - g) / (max - min) + 4);
+        }
+        // The art's red sits at about 2°; turn it to the chosen hue.
+        birdFilter = sat < 0.2 ? "saturate(0.05) brightness(1.25)" : `hue-rotate(${Math.round(hue - 2)}deg) saturate(${(0.6 + sat * 0.5).toFixed(2)})`;
+      }
+      // Applied through a CSS variable so the outline's drop shadow is kept.
+      if (birdFilter) root.style.setProperty("--bird-filter", birdFilter);
+      else root.style.removeProperty("--bird-filter");
+    },
     setSkin(next) {
       skin = next;
       root.replaceChildren();
@@ -493,7 +676,8 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
       }
       // Screens and lights sit under the controls; controls go in skin order,
       // which is also the Tab order.
-      root.append(...screens.map((s) => s.el), ...leds.map((l) => l.el), ...parts.map((p) => p.el));
+      root.append(...screens.map((s) => s.el), ...leds.map((l) => l.el), ...parts.map((p) => p.el), tip);
+      tip.hidden = true;
       updateAll(player.state);
       startLoop();
     },

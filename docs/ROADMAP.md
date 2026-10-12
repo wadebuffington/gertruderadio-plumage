@@ -44,7 +44,7 @@ watch the visuals move, operate everything from the keyboard, and read the About
 
 - [x] Prototype a non-rectangular player outline driving the same controls, starting from Eddie's chosen cardinal concepts A ("Flight Form") and D — see `docs/design/README.md`. *Both work, from the concept pictures cut out of their backgrounds (`tools/shaped/cutout.py`).*
 - [x] Answer the "how is a shape defined?" open question with something that works. *Artwork with a transparent background (its edge is the outline) + a short list of controls in the art's pixel coordinates (`src/shaped/skins.js`).*
-- [ ] Eddie plays with A and D and decides what to keep, move or redraw.
+- [x] Eddie plays with A and D and decides what to keep, move or redraw. *(Chose D; asked for hover labels, live play icons, a backlit-slot volume ring, and light/bird colour choices — done.)*
 - [ ] Final art: Eddie's redrawn birds swap in for the prototype pictures.
 
 ## Later
