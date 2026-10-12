@@ -34,3 +34,37 @@ is just its label, not part of our branding.
 - Final artwork will need to be redrawn or cleaned up as original art at proper
   resolution (with layers for buttons' normal/hover/pressed/focus states).
 - Check contrast of the orange-on-dark display text against AA.
+
+## Eddie's favorite classic skins — what to learn from them (October 2026)
+
+Eddie shared screenshots of favorite Winamp and Sonique skins. **The images are not
+kept in this repo** — they are other people's artwork (and several are tied to game
+studios' trademarks). What follows is what makes them work, in our own words, as
+direction for original Plumage skins.
+
+- **Sonique's three sizes.** One player, three forms: a full "navigation console"
+  with menus, a compact mid-size made of round linked orbs, and a tiny one-line
+  strip. Plumage skins should be able to define more than one size/mode, and the
+  player should move between them smoothly. (Strong candidate for the shaped-surface
+  system's core idea: a skin is a family of shapes, not one shape.)
+- **Round, organic modules.** Circular time displays, orbs, a chunky arrow/dial
+  cluster, pieces that bulge out of the main body. Not a rectangle with decoration —
+  the silhouette itself is the design.
+- **Floating, detached pieces.** Some skins split the player into separate floating
+  modules — round player, separate equalizer, separate playlist panel — each its own
+  shape. Plumage should allow modules (player, EQ, playlist, visuals) to dock or float.
+- **One loud accent on dark metal.** The strongest skins use charcoal or gunmetal with
+  a single hot accent (orange, green, or blue glow). Matches the Gertrude Radio
+  direction: near-black plus stained-glass accents.
+- **Hardware fantasy.** Industrial chrome with pipes, rivets, gauges, indicator lights;
+  gadget/handheld-device shapes. The player as an imaginary machine.
+- **Analog meters.** Needle VU meters and segmented LED level meters, blue backlit
+  glass. Worth building as a visualizer mode of our own alongside MilkDrop.
+- **Phosphor terminal.** Monochrome green-on-black, scanline feel, everything in one
+  glowing color — fits the hacker side of Gertrude Radio.
+- **A whole world in a skin.** The game-themed classic skins put a full mood around
+  the same standard controls (title bar, EQ sliders, playlist) — proof that function
+  can stay constant while the world around it changes.
+
+Note: classic Winamp 2 skins (the rectangular ones) already load in Webamp. Users can
+load their own from the Webamp skin museum — we link to it, we don't bundle them.
