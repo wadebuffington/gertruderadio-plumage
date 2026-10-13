@@ -161,17 +161,20 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
     el.addEventListener("click", () => act.run());
     // A live cap over the painted button face, so the icon can change (▶ / ❚❚).
     let face = null;
+    let faceImg = null;
     if (c.face) {
       face = el.appendChild(document.createElement("span"));
       face.className = "sh-face";
       face.setAttribute("aria-hidden", "true");
       face.style.width = `${(c.face.r / c.r) * 100}%`;
-      if (c.face.image) {
+      if (c.face.image || c.face.images) {
         // A finished button picture (Eddie's art) instead of a drawn cap + icon.
+        // `images` gives one per state, e.g. {play, pause} for the play button.
         face.classList.add("is-image");
-        const img = face.appendChild(document.createElement("img"));
-        img.src = c.face.image;
-        img.alt = "";
+        faceImg = face.appendChild(document.createElement("img"));
+        faceImg.src = c.face.image ?? Object.values(c.face.images)[0];
+        faceImg.alt = "";
+        faceImg.draggable = false;
       } else {
         face.style.setProperty("--face-from", c.face.from);
         face.style.setProperty("--face-to", c.face.to);
@@ -181,7 +184,11 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
       el,
       update(s) {
         if (c.page) el.hidden = PAGES[page].id !== c.page;
-        if (face && !c.face.image) {
+        if (faceImg && c.face.images) {
+          const state = c.action === "togglePlay" ? (s.status === "PLAYING" ? "pause" : "play") : null;
+          const src = c.face.images[state];
+          if (src && faceImg.getAttribute("src") !== src) faceImg.src = src;
+        } else if (face && !faceImg) {
           const icon = c.action === "togglePlay" ? (s.status === "PLAYING" ? "pause" : "play") : c.face.icon;
           if (face.dataset.icon !== icon) {
             face.dataset.icon = icon;

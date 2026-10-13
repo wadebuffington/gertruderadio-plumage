@@ -145,3 +145,10 @@ Small decisions made during the build that the brief did not cover. Newest at th
   (`docs/design/button-open.jpg`) now sits on D's open button. Button pictures are cut to a round
   image by `tools/shaped/buttons.py` and placed with a skin control's `face.image`. Being a picture,
   it keeps its own amber glow whatever screen colour is chosen.
+- 2026-10-13 — **Eddie's button set** (`docs/design/buttons-set-1.jpg`: stop, rewind, play,
+  fast-forward, volume, previous, pause, next, repeat, shuffle). `tools/shaped/buttons.py` finds the
+  ten discs automatically and cuts each to a round image. On D they now replace the painted
+  previous / shuffle / next / repeat (top row) and rewind / play-pause / fast-forward / stop (bottom
+  row); the play button switches between Eddie's play and pause pictures (`face.images`). The big
+  centre button keeps its red dome with a live icon. The volume button is cut and ready for a future
+  mute control.

@@ -18,6 +18,40 @@ BUTTONS = {
     "open": {"src": ROOT / "docs/design/button-open.jpg", "cx": 999, "cy": 987, "r": 604, "size": 128},
 }
 
+# Eddie's button sheet (Oct 2026): two rows of five, found automatically
+# (bright discs on black), named in reading order.
+SHEETS = [
+    {
+        "src": ROOT / "docs/design/buttons-set-1.jpg",
+        "names": ["stop", "rewind", "play", "forward", "volume", "previous", "pause", "next", "repeat", "shuffle"],
+        "size": 128,
+    },
+]
+
+
+def find_discs(path):
+    from scipy import ndimage
+
+    a = np.asarray(Image.open(path).convert("RGB")).astype(int)
+    bright = ndimage.binary_fill_holes(ndimage.binary_opening(a.sum(-1) / 3 > 30, iterations=3))
+    labels, _ = ndimage.label(bright)
+    discs = []
+    for ys, xs in ndimage.find_objects(labels):
+        w, h = xs.stop - xs.start, ys.stop - ys.start
+        if w > 150:  # ignore specks
+            discs.append(((xs.start + xs.stop) // 2, (ys.start + ys.stop) // 2, (w + h) // 4))
+    # reading order: rows (by centre height, coarsely), then left to right
+    row_h = max(d[2] for d in discs)
+    return sorted(discs, key=lambda d: (d[1] // row_h, d[0]))
+
+
+for sheet in SHEETS:
+    discs = find_discs(sheet["src"])
+    if len(discs) != len(sheet["names"]):
+        raise SystemExit(f"{sheet['src'].name}: found {len(discs)} buttons, expected {len(sheet['names'])}")
+    for name, (cx, cy, r) in zip(sheet["names"], discs):
+        BUTTONS[name] = {"src": sheet["src"], "cx": cx, "cy": cy, "r": r, "size": sheet["size"]}
+
 for name, b in BUTTONS.items():
     img = Image.open(b["src"]).convert("RGB")
     box = (b["cx"] - b["r"], b["cy"] - b["r"], b["cx"] + b["r"], b["cy"] + b["r"])
