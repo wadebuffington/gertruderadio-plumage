@@ -176,6 +176,7 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
         faceImg.alt = "";
         faceImg.draggable = false;
       } else {
+        if (c.face.glass) face.classList.add("is-glass");
         face.style.setProperty("--face-from", c.face.from);
         face.style.setProperty("--face-to", c.face.to);
       }

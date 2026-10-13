@@ -152,3 +152,7 @@ Small decisions made during the build that the brief did not cover. Newest at th
   row); the play button switches between Eddie's play and pause pictures (`face.images`). The big
   centre button keeps its red dome with a live icon. The volume button is cut and ready for a future
   mute control.
+- 2026-10-13 — Re-measured every D button on the new (plate-free) art at 4x zoom: the bottom row had
+  shifted ~6 units right and the top row a few units, which made the dark rims look uneven. Faces now
+  sized to fill each painted socket. The big centre play button is now a **glass dome** (see-through
+  red, top shine, a glint, warm under-glow) with a larger icon; Eddie likes it.
