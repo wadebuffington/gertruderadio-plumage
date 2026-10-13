@@ -136,3 +136,8 @@ Small decisions made during the build that the brief did not cover. Newest at th
   - **Cyborg plates: not removed by code.** A recolour attempt just made red armour; painting
     real feathers needs an artist or an image generator. Suggested to Eddie: edit the concept in
     Nano Banana (prompt in docs/design/README.md), then re-run the cut-out script.
+- 2026-10-13 — **New Perched (D) art from Eddie**: his Nano Banana edit with the metal plates removed
+  (natural red feathers), at about 2x resolution. Image alignment showed it's the original at 1.958x
+  with identical framing, so every control position still holds. The cut-out is pinned to the old
+  frame and written at 2x for sharpness on high-density screens (`FRAMES` in tools/shaped/cutout.py).
+  Its near-black face mask has a hint of blue, so very dark pixels are kept in the bird (`min_lum`).

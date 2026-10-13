@@ -33,7 +33,7 @@ export const SHAPED_SKINS = [
       { type: "button", action: "shuffle", x: 313, y: 318, r: 22 },
       { type: "button", action: "next", x: 365, y: 318, r: 22 },
       { type: "button", action: "repeat", x: 418, y: 318, r: 22 },
-      { type: "screen", kind: "pages", x: 169, y: 362, w: 333, h: 242, mask: "./shaped/concept-d-screen.png" },
+      { type: "screen", kind: "pages", x: 168.5, y: 361.5, w: 334, h: 243.5, mask: "./shaped/concept-d-screen.png" },
       { type: "button", action: "screenPrev", x: 192, y: 386, r: 12, face: { r: 11, icon: "left", from: "#2a0a0b", to: "#0e0304" } },
       { type: "button", action: "screenNext", x: 428, y: 386, r: 12, face: { r: 11, icon: "right", from: "#2a0a0b", to: "#0e0304" } },
       { type: "button", action: "visualPrev", page: "visuals", x: 192, y: 582, r: 12, face: { r: 11, icon: "left", from: "#2a0a0b", to: "#0e0304" } },

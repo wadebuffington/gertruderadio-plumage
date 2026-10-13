@@ -42,7 +42,8 @@ is just its label, not part of our branding.
   feathers that match the rest of the bird. Keep everything else exactly the same — same pose,
   size, position, framing, background and the whole music-player body and buttons."* Save it as
   `docs/design/concept-d.jpg` and re-run `python3 tools/shaped/cutout.py`; check the controls
-  still line up (positions are in `src/shaped/skins.js`).
+  still line up (positions are in `src/shaped/skins.js`). *Done Oct 13: Eddie's edited picture is now
+  `docs/design/concept-d.jpg`.*
 
 ## Eddie's favorite classic skins — what to learn from them (October 2026)
 

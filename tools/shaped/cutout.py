@@ -27,13 +27,16 @@ SOURCES = {
 OUT = ROOT / "public/shaped"
 
 
-def cut(path):
+def cut(path, frame=None):
     rgb = np.asarray(Image.open(path).convert("RGB")).astype(np.int16)
     r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
     lum = 0.299 * r + 0.587 * g + 0.114 * b
     # Background: dark and blue-leaning. The cardinal's black mask is neutral, not blue,
     # so requiring a little extra blue keeps the face.
-    bg_like = (lum < 62) & (b >= r + 4)
+    # Some pictures have a near-black face mask with a hint of blue; the backdrop
+    # is never that dark, so `min_lum` keeps very dark pixels in the bird.
+    min_lum = (frame or {}).get("min_lum", 0)
+    bg_like = (lum < 62) & (b >= r + 4) & (lum >= min_lum)
 
     # Only background-like pixels connected to the picture's edge count.
     labels, _ = ndimage.label(bg_like)
@@ -52,17 +55,28 @@ def cut(path):
     alpha = Image.fromarray((bird * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(0.8))
     img = Image.open(path).convert("RGBA")
     img.putalpha(alpha)
+    if frame:
+        return img.crop(frame["box"]).resize(frame["size"], Image.LANCZOS), frame["box"]
     ys, xs = np.nonzero(bird)
     pad = 6
     box = (max(0, xs.min() - pad), max(0, ys.min() - pad), min(img.width, xs.max() + pad), min(img.height, ys.max() + pad))
     return img.crop(box), box
 
 
+# Pin a cut-out to a fixed frame so the control positions in src/shaped/skins.js
+# stay valid when the art is replaced by a bigger or edited version. `box` is
+# the frame in this source image's pixels; `size` is the output size; `units`
+# converts output pixels to the skin's coordinate units.
+# D: Eddie's Oct 2026 edit (metal plates removed) is the original at 1.958x,
+# same framing (checked by image alignment), so its frame is the old crop
+# (34, 18, 832, 996) x 1.958, written out at 2x the skin's units for sharpness.
+FRAMES = {"d": {"box": (67, 35, 1629, 1950), "size": (1596, 1956), "units": 0.5, "min_lum": 9}}
+
 # Screens whose live display must fit the painted glass exactly: a point inside
 # the glass and a box to stay within. The glass is warm dark red with orange
 # markings; its frame is neutral grey metal, so spreading out from the seed
 # through warm pixels stops at the frame.
-SCREENS = {"d": {"seed": (200, 470), "box": (160, 340, 520, 620)}}
+SCREENS = {"d": {"seed": (200, 470), "box": (160, 340, 520, 620)}}  # in skin units
 
 
 def screen_mask(img, seed, box):
@@ -84,14 +98,19 @@ def screen_mask(img, seed, box):
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
     for key, src in SOURCES.items():
-        img, box = cut(src)
+        frame = FRAMES.get(key)
+        img, box = cut(src, frame)
+        k = 1 / frame["units"] if frame else 1  # output px per skin unit
         dest = OUT / f"concept-{key}.webp"
         img.save(dest, "WEBP", quality=88, method=6)
         # crop offset matters: control positions are measured on the cut-out
         print(f"{dest.relative_to(ROOT)}  {img.width}x{img.height}  (crop {box})  {dest.stat().st_size // 1024} KB")
         if key in SCREENS:
-            alpha, crop = screen_mask(img, **SCREENS[key])
+            sc = SCREENS[key]
+            seed = tuple(round(v * k) for v in sc["seed"])
+            sbox = tuple(round(v * k) for v in sc["box"])
+            alpha, crop = screen_mask(img, seed, sbox)
             mask = OUT / f"concept-{key}-screen.png"
             Image.merge("RGBA", (alpha, alpha, alpha, alpha)).save(mask, optimize=True)
-            x0, y0, x1, y1 = (int(v) for v in crop)
-            print(f"  screen mask {mask.relative_to(ROOT)}: x {x0}, y {y0}, w {x1 - x0}, h {y1 - y0}")
+            x0, y0, x1, y1 = (int(v) / k for v in crop)
+            print(f"  screen mask {mask.relative_to(ROOT)} (skin units): x {x0:g}, y {y0:g}, w {x1 - x0:g}, h {y1 - y0:g}")
