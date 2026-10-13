@@ -58,6 +58,29 @@ def cut(path):
     return img.crop(box), box
 
 
+# Screens whose live display must fit the painted glass exactly: a point inside
+# the glass and a box to stay within. The glass is warm dark red with orange
+# markings; its frame is neutral grey metal, so spreading out from the seed
+# through warm pixels stops at the frame.
+SCREENS = {"d": {"seed": (200, 470), "box": (160, 340, 520, 620)}}
+
+
+def screen_mask(img, seed, box):
+    rgb = np.asarray(img.convert("RGB")).astype(np.int16)
+    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    warm = (r - np.maximum(g, b)) > 16
+    inside = np.zeros_like(warm)
+    x0, y0, x1, y1 = box
+    inside[y0:y1, x0:x1] = True
+    labels, _ = ndimage.label(warm & inside)
+    glass = labels == labels[seed[1], seed[0]]
+    glass = ndimage.binary_fill_holes(ndimage.binary_closing(glass, iterations=3))
+    ys, xs = np.nonzero(glass)
+    crop = (xs.min(), ys.min(), xs.max() + 1, ys.max() + 1)
+    alpha = Image.fromarray((glass * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(0.7)).crop(crop)
+    return alpha, crop
+
+
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
     for key, src in SOURCES.items():
@@ -66,3 +89,9 @@ if __name__ == "__main__":
         img.save(dest, "WEBP", quality=88, method=6)
         # crop offset matters: control positions are measured on the cut-out
         print(f"{dest.relative_to(ROOT)}  {img.width}x{img.height}  (crop {box})  {dest.stat().st_size // 1024} KB")
+        if key in SCREENS:
+            alpha, crop = screen_mask(img, **SCREENS[key])
+            mask = OUT / f"concept-{key}-screen.png"
+            Image.merge("RGBA", (alpha, alpha, alpha, alpha)).save(mask, optimize=True)
+            x0, y0, x1, y1 = (int(v) for v in crop)
+            print(f"  screen mask {mask.relative_to(ROOT)}: x {x0}, y {y0}, w {x1 - x0}, h {y1 - y0}")

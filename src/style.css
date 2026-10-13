@@ -677,14 +677,17 @@ body {
   display: block;
   width: 100%;
   height: 100%;
-  /* optional recolour, then a shadow that follows the bird's outline */
-  filter: var(--bird-filter,) drop-shadow(0 14px 26px rgb(0 0 0 / 0.65));
+  /* the shadow follows the bird's outline, not a rectangle */
+  filter: drop-shadow(0 14px 26px rgb(0 0 0 / 0.65));
   pointer-events: none;
 }
 .sh-ctl,
 .sh-screen,
 .sh-led {
   position: absolute;
+}
+.sh-btn[hidden] {
+  display: none;
 }
 .sh-btn,
 .sh-knob,
@@ -825,7 +828,6 @@ body {
   border-radius: 50%;
   pointer-events: none;
 }
-/* the cap takes the bird's recolour; the icon on top keeps the light colour */
 .sh-face::before {
   content: "";
   position: absolute;
@@ -835,7 +837,6 @@ body {
     radial-gradient(circle at 50% 22%, rgb(255 255 255 / 0.28), transparent 45%),
     radial-gradient(circle at 50% 40%, var(--face-from), var(--face-to) 75%);
   box-shadow: inset 0 -3px 6px rgb(0 0 0 / 0.45);
-  filter: var(--bird-filter,);
 }
 .sh-face svg {
   position: absolute;

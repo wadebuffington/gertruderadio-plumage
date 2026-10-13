@@ -188,6 +188,15 @@ function start() {
     presets: PRESETS,
     openFiles: () => $("#file-input").click(),
     say,
+    // The screen's Visuals page: make sure the visuals are running, and go full
+    // screen on the big visuals stage (best quality).
+    startVisuals: () => {
+      if (!visuals.running && player.state.tracks.length) setVisuals(true);
+    },
+    fullscreen: () => {
+      if (!visuals.running && player.state.tracks.length) setVisuals(true);
+      stage.requestFullscreen?.();
+    },
   });
   const shapedPick = document.querySelectorAll('input[name="shaped-skin"]');
   // Small per-browser preferences; if storage is blocked we just use defaults.
@@ -219,42 +228,28 @@ function start() {
   }
   showShaped(shapedChoice);
 
-  // Light colour and bird colour: presets, or the person's own pick.
+  // Screen & light colour: a preset, or the person's own pick.
   const lightCustom = $("#light-custom");
-  const birdCustom = $("#bird-custom");
-  const radios = (name) => [...document.querySelectorAll(`input[name="${name}"]`)];
-  const chosen = (name) => radios(name).find((r) => r.checked)?.value;
-  function applyColors(save) {
-    const lightChoice = chosen("lights");
-    const light = lightChoice === "custom" ? lightCustom.value : lightChoice;
-    shaped.setLights(light);
-    const birdChoice = chosen("bird");
-    shaped.setBirdColor(birdChoice === "natural" ? null : birdChoice === "lights" ? light : birdCustom.value);
+  const lightRadios = [...document.querySelectorAll('input[name="lights"]')];
+  function applyLights(save) {
+    const choice = lightRadios.find((r) => r.checked)?.value ?? "#ffa53a";
+    shaped.setLights(choice === "custom" ? lightCustom.value : choice);
     if (save) {
-      pref.set("lights", lightChoice);
+      pref.set("lights", choice);
       pref.set("lightCustom", lightCustom.value);
-      pref.set("bird", birdChoice);
-      pref.set("birdCustom", birdCustom.value);
     }
   }
   lightCustom.value = pref.get("lightCustom", lightCustom.value);
-  birdCustom.value = pref.get("birdCustom", birdCustom.value);
-  for (const [name, def] of [["lights", "#ffa53a"], ["bird", "natural"]]) {
-    const saved = pref.get(name, def);
-    for (const r of radios(name)) r.checked = r.value === saved;
-    if (!chosen(name)) radios(name)[0].checked = true;
-  }
-  for (const r of [...radios("lights"), ...radios("bird")]) r.addEventListener("change", () => applyColors(true));
-  // Picking a colour also selects "Your own" for that row.
+  const savedLights = pref.get("lights", "#ffa53a");
+  for (const r of lightRadios) r.checked = r.value === savedLights;
+  if (!lightRadios.some((r) => r.checked)) lightRadios[0].checked = true;
+  for (const r of lightRadios) r.addEventListener("change", () => applyLights(true));
+  // Picking a colour also selects "Your own".
   lightCustom.addEventListener("input", () => {
-    radios("lights").find((r) => r.value === "custom").checked = true;
-    applyColors(true);
+    lightRadios.find((r) => r.value === "custom").checked = true;
+    applyLights(true);
   });
-  birdCustom.addEventListener("input", () => {
-    radios("bird").find((r) => r.value === "custom").checked = true;
-    applyColors(true);
-  });
-  applyColors(false);
+  applyLights(false);
 
   // --- Make a video ------------------------------------------------------------
   const renderForm = $("#render-form");

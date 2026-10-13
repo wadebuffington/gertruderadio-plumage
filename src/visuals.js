@@ -59,13 +59,23 @@ export function createVisuals({ canvas, player, onPresetChange }) {
     if (chosen === presetIndex) visualizer.loadPreset(mod.default ?? mod, blend);
   }
 
+  // Others (the shaped player's little screen) can copy each finished frame.
+  // They must do it right here: a WebGL canvas may be blank once the browser
+  // has shown the frame.
+  const frameListeners = new Set();
   function loop() {
     visualizer.render();
+    for (const fn of frameListeners) fn(canvas);
     frame = requestAnimationFrame(loop);
   }
 
   return {
     supported,
+    /** Call `fn(canvas)` after every rendered frame; returns an unsubscribe function. */
+    onFrame(fn) {
+      frameListeners.add(fn);
+      return () => frameListeners.delete(fn);
+    },
     get running() {
       return running;
     },

@@ -123,3 +123,16 @@ Small decisions made during the build that the brief did not cover. Newest at th
     hue-rotate); pale picks give a silver bird. The painted icons turn with it — fine for the
     prototype; separate button art (see SHAPED-SKIN-ART.md) will fix that in the redraw.
   - Choices are remembered in this browser only.
+- 2026-10-13 — Eddie's second round on Perched (D):
+  - **Stop is a plain square** (industry standard): a live cap over the painted button.
+  - **The screen fits its glass exactly.** The glass outline is traced from the art
+    (`tools/shaped/cutout.py` → `public/shaped/concept-d-screen.png`) and used as a mask, so the
+    live screen fills the curved left edge and no longer spills onto the bird's chest.
+  - **Red bird only.** Bird recolouring removed; the screen & light colour choice stays.
+  - **Screen pages** with small ‹ › arrows on the screen: Now playing (spectrum) → Track info →
+    Up next → Visuals. Visuals shows the live MilkDrop picture inside the glass, with ‹ › to change
+    visual and a full-screen button (uses the big visuals stage). Opening that page switches the
+    visuals on if they were off. Arrow labels say where they go ("Next page: Up next").
+  - **Cyborg plates: not removed by code.** A recolour attempt just made red armour; painting
+    real feathers needs an artist or an image generator. Suggested to Eddie: edit the concept in
+    Nano Banana (prompt in docs/design/README.md), then re-run the cut-out script.

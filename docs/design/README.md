@@ -36,6 +36,13 @@ is just its label, not part of our branding.
   resolution (with layers for buttons' normal/hover/pressed/focus states).
 - Check contrast of the orange-on-dark display text against AA.
 - **Art checklist for preparing A and D:** [SHAPED-SKIN-ART.md](SHAPED-SKIN-ART.md).
+- **Removing the metal plates from D (Eddie, Oct 2026).** Easiest in the generator that made it.
+  Suggested Nano Banana edit prompt: *"Edit this image: remove the grey metal armour plates and
+  rivets from the cardinal's neck and shoulder and replace them with natural red cardinal
+  feathers that match the rest of the bird. Keep everything else exactly the same — same pose,
+  size, position, framing, background and the whole music-player body and buttons."* Save it as
+  `docs/design/concept-d.jpg` and re-run `python3 tools/shaped/cutout.py`; check the controls
+  still line up (positions are in `src/shaped/skins.js`).
 
 ## Eddie's favorite classic skins — what to learn from them (October 2026)
 

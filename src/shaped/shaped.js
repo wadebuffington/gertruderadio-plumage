@@ -33,7 +33,7 @@ export function lightPalette(hex) {
 }
 
 /** What each action does, and how its control describes itself. */
-function actions({ player, visuals, presets, openFiles, say }) {
+function actions({ player, visuals, presets, openFiles, say, screen, fullscreen }) {
   const tell = (msg) => msg && say(msg);
   const needsTracks = (s) => s.tracks.length > 0;
   return {
@@ -47,6 +47,12 @@ function actions({ player, visuals, presets, openFiles, say }) {
     repeat: { label: () => "Repeat", pressed: (s) => s.repeat, run: () => player.toggleRepeat() },
     open: { label: () => "Open files…", run: () => openFiles() },
     nextPreset: { label: () => "Next visual preset", run: () => visuals.nextPreset() },
+    // Say where the arrow goes, e.g. "Next page: Up next".
+    screenPrev: { label: () => `Previous page: ${screen.pageName(-1)}`, run: () => screen.turn(-1) },
+    screenNext: { label: () => `Next page: ${screen.pageName(1)}`, run: () => screen.turn(1) },
+    visualPrev: { label: () => "Previous visual", run: () => visuals.previousPreset() },
+    visualNext: { label: () => "Next visual", run: () => visuals.nextPreset() },
+    fullscreen: { label: () => "Show visuals full screen", run: () => fullscreen() },
 
     // Sliders and knobs: a range, a current value, and how to say it.
     volume: {
@@ -73,14 +79,56 @@ function actions({ player, visuals, presets, openFiles, say }) {
 const ICONS = {
   play: '<svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></svg>',
   pause: '<svg viewBox="0 0 24 24"><rect x="6.5" y="5.5" width="4" height="13" rx="1"/><rect x="13.5" y="5.5" width="4" height="13" rx="1"/></svg>',
+  stop: '<svg viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="1.2"/></svg>',
+  left: '<svg viewBox="0 0 24 24"><path d="M15 5.5 8.5 12l6.5 6.5z"/></svg>',
+  right: '<svg viewBox="0 0 24 24"><path d="M9 5.5 15.5 12 9 18.5z"/></svg>',
+  full: '<svg viewBox="0 0 24 24"><path d="M5 5h5v2H7v3H5zm9 0h5v5h-2V7h-3zM5 14h2v3h3v2H5zm12 0h2v5h-5v-2h3z"/></svg>',
 };
+
+/** Pages the little screen can show, in order. */
+const PAGES = [
+  { id: "nowplaying", title: "NOW PLAYING", name: "Now playing" },
+  { id: "info", title: "TRACK INFO", name: "Track info" },
+  { id: "upnext", title: "UP NEXT", name: "Up next" },
+  { id: "visuals", title: "VISUALS", name: "Visuals" },
+];
 
 const ACTION_NAMES = {
   togglePlay: "play-pause", nextPreset: "visual", previous: "prev", next: "next",
 };
 
-export function createShapedPlayer({ root, player, visuals, presets, openFiles, say }) {
-  const ACT = actions({ player, visuals, presets, openFiles, say });
+export function createShapedPlayer({ root, player, visuals, presets, openFiles, say, fullscreen, startVisuals }) {
+  // The little screen's pages.
+  let page = 0;
+  let stopCopy = null; // unsubscribe from visual frames while on the Visuals page
+  const snap = document.createElement("canvas"); // latest visual frame, copied as it's drawn
+  const screen = {
+    pageName: (offset = 0) => PAGES[(page + offset + PAGES.length) % PAGES.length].name,
+    turn(step) {
+      page = (page + step + PAGES.length) % PAGES.length;
+      say(`Screen: ${PAGES[page].name}.`);
+      watchVisuals();
+      updateAll(player.state);
+    },
+  };
+  function watchVisuals() {
+    const want = PAGES[page].id === "visuals";
+    if (want && !stopCopy) {
+      startVisuals?.();
+      stopCopy = visuals.onFrame((cv) => {
+        if (snap.width !== cv.width || snap.height !== cv.height) {
+          snap.width = cv.width;
+          snap.height = cv.height;
+        }
+        snap.getContext("2d").drawImage(cv, 0, 0);
+        snap.dataset.fresh = String(performance.now());
+      });
+    } else if (!want && stopCopy) {
+      stopCopy();
+      stopCopy = null;
+    }
+  }
+  const ACT = actions({ player, visuals, presets, openFiles, say, screen, fullscreen });
   let P = lightPalette("#ffa53a");
   let skin = null;
   let parts = []; // { el, control, act, update(state) }
@@ -124,6 +172,7 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
     return {
       el,
       update(s) {
+        if (c.page) el.hidden = PAGES[page].id !== c.page;
         if (face) {
           const icon = c.action === "togglePlay" ? (s.status === "PLAYING" ? "pause" : "play") : c.face.icon;
           if (face.dataset.icon !== icon) {
@@ -360,6 +409,12 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
       canvas.style.width = pct(c.w, skin.width);
       canvas.style.height = pct(c.h, skin.height);
     }
+    if (c.mask) {
+      // Only draw inside the painted glass (its exact outline, traced from the art).
+      canvas.style.maskImage = canvas.style.webkitMaskImage = `url("${c.mask}")`;
+      canvas.style.maskSize = canvas.style.webkitMaskSize = "100% 100%";
+      canvas.style.borderRadius = "0";
+    }
     return { el: canvas, kind: c.kind, ctx: canvas.getContext("2d") };
   }
 
@@ -468,22 +523,34 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
     }
   }
 
-  function drawNowPlaying(sc, s, t) {
-    const { w, h } = sizeCanvas(sc.el);
-    const ctx = sc.ctx;
-    ctx.save();
-    ctx.beginPath();
-    ctx.roundRect(0, 0, w, h, w * 0.04);
-    ctx.clip();
-    glass(ctx, w, h);
-    lcdText(ctx, "NOW PLAYING", w / 2, h * 0.1, h * 0.075, "center", P.hot);
-    // Spectrum: 10 columns of LED segments.
+  // ---- the paged screen (D). Layout is in fractions of the screen box; the
+  // glass outline (mask) is narrower at the top right, so rows keep clear of it.
+  const ellipsize = (ctx, text, width) => {
+    if (ctx.measureText(text).width <= width) return text;
+    let t = text;
+    while (t.length > 1 && ctx.measureText(`${t}…`).width > width) t = t.slice(0, -1);
+    return `${t}…`;
+  };
+
+  function screenChrome(ctx, w, h, title) {
+    lcdText(ctx, title, w * 0.43, h * 0.1, h * 0.068, "center", P.hot);
+    // page dots, so it's clear there are more pages
+    const n = PAGES.length;
+    for (let i = 0; i < n; i++) {
+      ctx.beginPath();
+      ctx.arc(w * 0.43 + (i - (n - 1) / 2) * h * 0.045, h * 0.185, h * 0.011, 0, Math.PI * 2);
+      ctx.fillStyle = i === page ? P.lcd : P.dim;
+      ctx.fill();
+    }
+  }
+
+  function drawSpectrum(ctx, w, h) {
     const cols = bars.length;
     const rows = 12;
-    const left = w * 0.06;
-    const areaW = w * 0.88;
-    const top = h * 0.2;
-    const areaH = h * 0.5;
+    const left = w * 0.07;
+    const areaW = w * 0.8;
+    const top = h * 0.25;
+    const areaH = h * 0.47;
     const cw = areaW / cols;
     const rh = areaH / rows;
     for (let c = 0; c < cols; c++) {
@@ -495,11 +562,100 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
         ctx.fillRect(left + c * cw + cw * 0.14, y + rh * 0.18, cw * 0.72, rh * 0.64);
       }
     }
-    ctx.fillStyle = "rgba(255,165,58,0.3)";
-    ctx.fillRect(w * 0.05, h * 0.76, w * 0.9, Math.max(1, h * 0.006));
-    marquee(ctx, s.current ? s.current.name : "Plumage — by Gertrude Radio", w * 0.06, h * 0.88, w * 0.62, h * 0.075, t, "left");
-    lcdText(ctx, s.current ? formatTime(s.timeElapsed) : "", w * 0.94, h * 0.88, h * 0.075, "right");
-    ctx.restore();
+  }
+
+  function drawPages(sc, s, t) {
+    const { w, h } = sizeCanvas(sc.el);
+    const ctx = sc.ctx;
+    const id = PAGES[page].id;
+    const size = h * 0.068;
+    glass(ctx, w, h);
+
+    if (id === "visuals") {
+      // The live MilkDrop picture, filling the glass.
+      const fresh = Number(snap.dataset.fresh || 0) > performance.now() - 500;
+      if (fresh && snap.width) {
+        const k = Math.max(w / snap.width, h / snap.height);
+        const dw = snap.width * k;
+        const dh = snap.height * k;
+        ctx.drawImage(snap, (w - dw) / 2, (h - dh) / 2, dw, dh);
+      } else {
+        lcdText(ctx, s.tracks.length ? "VISUALS ARE OFF" : "OPEN SOME MUSIC", w * 0.45, h * 0.45, size);
+        lcdText(ctx, s.tracks.length ? "turn them on in the Visuals panel" : "and the visuals wake up", w * 0.45, h * 0.57, size * 0.8, "center", P.line);
+      }
+      // dark bands so the title and the preset name stay readable
+      const top = ctx.createLinearGradient(0, 0, 0, h * 0.24);
+      top.addColorStop(0, "rgb(0 0 0 / 0.75)");
+      top.addColorStop(1, "rgb(0 0 0 / 0)");
+      ctx.fillStyle = top;
+      ctx.fillRect(0, 0, w, h * 0.24);
+      const bottom = ctx.createLinearGradient(0, h * 0.78, 0, h);
+      bottom.addColorStop(0, "rgb(0 0 0 / 0)");
+      bottom.addColorStop(1, "rgb(0 0 0 / 0.8)");
+      ctx.fillStyle = bottom;
+      ctx.fillRect(0, h * 0.78, w, h * 0.22);
+      screenChrome(ctx, w, h, "VISUALS");
+      ctx.font = `700 ${size}px ${MONO}`;
+      lcdText(ctx, ellipsize(ctx, presets[visuals.presetIndex].label.toUpperCase(), w * 0.56), w * 0.42, h * 0.905, size);
+      return;
+    }
+
+    screenChrome(ctx, w, h, PAGES[page].title);
+
+    if (id === "nowplaying") {
+      drawSpectrum(ctx, w, h);
+      ctx.fillStyle = P.line;
+      ctx.fillRect(w * 0.05, h * 0.78, w * 0.9, Math.max(1, h * 0.006));
+      marquee(ctx, s.current ? s.current.name : "Plumage — by Gertrude Radio", w * 0.06, h * 0.885, w * 0.66, size, t, "left");
+      lcdText(ctx, s.current ? formatTime(s.timeElapsed) : "", w * 0.94, h * 0.885, size, "right");
+      return;
+    }
+
+    if (id === "info") {
+      if (!s.current) {
+        lcdText(ctx, "NO TRACK YET", w * 0.45, h * 0.5, size);
+        return;
+      }
+      marquee(ctx, s.current.name, w * 0.07, h * 0.34, w * 0.78, size * 1.15, t, "left");
+      lcdText(ctx, `TRACK ${s.currentIndex + 1} OF ${s.tracks.length}`, w * 0.07, h * 0.47, size * 0.9, "left", P.hot);
+      const left = Math.max(0, (s.duration || 0) - s.timeElapsed);
+      lcdText(ctx, `${formatTime(s.timeElapsed)} PLAYED · ${formatTime(left)} LEFT`, w * 0.07, h * 0.58, size * 0.9, "left");
+      // progress bar
+      const f = s.duration ? Math.min(1, s.timeElapsed / s.duration) : 0;
+      ctx.fillStyle = P.dim;
+      ctx.fillRect(w * 0.07, h * 0.665, w * 0.78, h * 0.03);
+      ctx.fillStyle = P.lcd;
+      ctx.fillRect(w * 0.07, h * 0.665, w * 0.78 * f, h * 0.03);
+      ctx.fillStyle = P.line;
+      ctx.fillRect(w * 0.05, h * 0.78, w * 0.9, Math.max(1, h * 0.006));
+      const on = (v) => (v ? "ON" : "OFF");
+      lcdText(ctx, `VOL ${s.volume}%   SHUFFLE ${on(s.shuffle)}   REPEAT ${on(s.repeat)}`, w * 0.06, h * 0.885, size * 0.85, "left");
+      return;
+    }
+
+    if (id === "upnext") {
+      if (!s.tracks.length) {
+        lcdText(ctx, "PLAYLIST IS EMPTY", w * 0.45, h * 0.5, size);
+        return;
+      }
+      const start = Math.max(0, s.currentIndex);
+      ctx.font = `700 ${size}px ${MONO}`;
+      for (let i = 0; i < 4; i++) {
+        const k = start + i;
+        if (k >= s.tracks.length) break;
+        const y = h * (0.33 + i * 0.12);
+        const label = `${k === s.currentIndex ? "▶" : " "} ${k + 1}. `;
+        lcdText(ctx, label, w * 0.06, y, size, "left", k === s.currentIndex ? P.hot : P.lcd);
+        ctx.font = `700 ${size}px ${MONO}`;
+        const lw = ctx.measureText(label).width;
+        if (k === s.currentIndex) marquee(ctx, s.tracks[k].name, w * 0.06 + lw, y, w * 0.8 - lw, size, t, "left");
+        else lcdText(ctx, ellipsize(ctx, s.tracks[k].name, w * 0.8 - lw), w * 0.06 + lw, y, size, "left");
+      }
+      ctx.fillStyle = P.line;
+      ctx.fillRect(w * 0.05, h * 0.78, w * 0.9, Math.max(1, h * 0.006));
+      const total = s.tracks.reduce((sum, tr) => sum + (tr.duration || 0), 0);
+      lcdText(ctx, `${s.tracks.length} TRACK${s.tracks.length === 1 ? "" : "S"} · ${formatTime(total)}`, w * 0.06, h * 0.885, size * 0.9, "left");
+    }
   }
 
   function readAudio() {
@@ -543,7 +699,7 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
     for (const sc of screens) {
       if (sc.kind === "round") drawRound(sc, s, t);
       else if (sc.kind === "meter") drawMeter(sc);
-      else if (sc.kind === "nowplaying") drawNowPlaying(sc, s, t);
+      else if (sc.kind === "pages") drawPages(sc, s, t);
     }
     // Slider positions move with playback (the seek bar), so refresh them here too.
     for (const p of parts) if (p.el.getAttribute("role") === "slider") p.update(s);
@@ -621,7 +777,6 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
   }
   player.subscribe((s) => skin && updateAll(s));
 
-  let birdFilter = "";
   return {
     /** Light colour for screens, lights and sliders (any CSS hex colour). */
     setLights(hex) {
@@ -630,32 +785,11 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
       root.style.setProperty("--sh-light-hot", P.hot);
       if (skin) updateAll(player.state);
     },
-    /**
-     * Recolour the bird. `hex` null = natural red. Works by turning the hue
-     * (red → the chosen colour); pale colours give a silvery bird.
-     */
-    setBirdColor(hex) {
-      if (!hex) birdFilter = "";
-      else {
-        const [r, g, b] = hexRgb(hex).map((v) => v / 255);
-        const max = Math.max(r, g, b);
-        const min = Math.min(r, g, b);
-        const sat = max === 0 ? 0 : (max - min) / max;
-        let hue = 0;
-        if (max !== min) {
-          if (max === r) hue = 60 * (((g - b) / (max - min)) % 6);
-          else if (max === g) hue = 60 * ((b - r) / (max - min) + 2);
-          else hue = 60 * ((r - g) / (max - min) + 4);
-        }
-        // The art's red sits at about 2°; turn it to the chosen hue.
-        birdFilter = sat < 0.2 ? "saturate(0.05) brightness(1.25)" : `hue-rotate(${Math.round(hue - 2)}deg) saturate(${(0.6 + sat * 0.5).toFixed(2)})`;
-      }
-      // Applied through a CSS variable so the outline's drop shadow is kept.
-      if (birdFilter) root.style.setProperty("--bird-filter", birdFilter);
-      else root.style.removeProperty("--bird-filter");
-    },
     setSkin(next) {
       skin = next;
+      // Only skins with a paged screen have pages; others start (and stay) on page one.
+      if (!skin.controls.some((c) => c.kind === "pages")) page = 0;
+      watchVisuals();
       root.replaceChildren();
       parts = [];
       screens = [];

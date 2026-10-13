@@ -10,8 +10,10 @@
 //   screen  {x, y, w, h} | {x, y, r}   live text/graphics drawn by the app
 //   led     {x, y, r}              a light that glows for a state
 //
-// Extras: a button's `face` {r, from, to} lays a live cap over the painted
-// face, so its icon can change (play ↔ pause). A knob's `slots` paints a ring
+// Extras: a button's `face` {r, from, to, icon} lays a live cap over the
+// painted face, so its icon can change (play ↔ pause) or be redrawn (stop ■).
+// A button with `page` only shows on that page of a paged screen. A screen's
+// `mask` is its glass outline (traced from the art by tools/shaped/cutout.py). A knob's `slots` paints a ring
 // of backlit slots between radii `inner` and `outer`, lit up to its value;
 // `ring` is the radius inside which the knob ignores the pointer (another
 // control sits there).
@@ -25,13 +27,18 @@ export const SHAPED_SKINS = [
     name: "Perched (concept D)",
     art: "./shaped/concept-d.webp",
     width: 798,
-    height: 977,
+    height: 978,
     controls: [
       { type: "button", action: "previous", x: 260, y: 318, r: 22 },
       { type: "button", action: "shuffle", x: 313, y: 318, r: 22 },
       { type: "button", action: "next", x: 365, y: 318, r: 22 },
       { type: "button", action: "repeat", x: 418, y: 318, r: 22 },
-      { type: "screen", kind: "nowplaying", x: 182, y: 362, w: 308, h: 238 },
+      { type: "screen", kind: "pages", x: 169, y: 362, w: 333, h: 242, mask: "./shaped/concept-d-screen.png" },
+      { type: "button", action: "screenPrev", x: 192, y: 386, r: 12, face: { r: 11, icon: "left", from: "#2a0a0b", to: "#0e0304" } },
+      { type: "button", action: "screenNext", x: 428, y: 386, r: 12, face: { r: 11, icon: "right", from: "#2a0a0b", to: "#0e0304" } },
+      { type: "button", action: "visualPrev", page: "visuals", x: 192, y: 582, r: 12, face: { r: 11, icon: "left", from: "#2a0a0b", to: "#0e0304" } },
+      { type: "button", action: "visualNext", page: "visuals", x: 430, y: 582, r: 12, face: { r: 11, icon: "right", from: "#2a0a0b", to: "#0e0304" } },
+      { type: "button", action: "fullscreen", page: "visuals", x: 472, y: 582, r: 12, face: { r: 11, icon: "full", from: "#2a0a0b", to: "#0e0304" } },
       { type: "slider", action: "seek", x1: 196, y1: 628, x2: 478, y2: 628, w: 20 },
       { type: "button", action: "open", x: 537, y: 628, r: 19 },
       {
@@ -42,7 +49,7 @@ export const SHAPED_SKINS = [
       { type: "button", action: "rewind", x: 263, y: 688, r: 26 },
       { type: "button", action: "togglePlay", x: 338, y: 690, r: 33, face: { r: 24, from: "#6e2024", to: "#3a0e10" } },
       { type: "button", action: "forward", x: 412, y: 688, r: 26 },
-      { type: "button", action: "stop", x: 475, y: 675, r: 18 },
+      { type: "button", action: "stop", x: 475, y: 675, r: 18, face: { r: 14, icon: "stop", from: "#6a1e21", to: "#330c0d" } },
     ],
   },
   {
@@ -63,7 +70,7 @@ export const SHAPED_SKINS = [
       { type: "slider", action: "volume", x1: 605, y1: 498, x2: 605, y2: 350, w: 22 },
       { type: "slider", action: "balance", x1: 656, y1: 505, x2: 656, y2: 368, w: 22 },
       { type: "screen", kind: "meter", x: 312, y: 560, w: 268, h: 30 },
-      { type: "button", action: "stop", x: 322, y: 628, r: 15 },
+      { type: "button", action: "stop", x: 322, y: 628, r: 15, face: { r: 12, icon: "stop", from: "#4a1416", to: "#250809" } },
       { type: "button", action: "rewind", x: 378, y: 640, r: 25 },
       { type: "button", action: "togglePlay", x: 445, y: 640, r: 33, face: { r: 24, from: "#6e2024", to: "#3a0e10" } },
       { type: "button", action: "forward", x: 512, y: 640, r: 25 },
