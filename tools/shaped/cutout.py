@@ -95,7 +95,72 @@ def screen_mask(img, seed, box):
     return alpha, crop
 
 
+# Eddie's Aviary birds (Oct 2026) share concept D's player and framing: each is
+# D's source at 0.972x shifted (-7, +30) px (found by image alignment), so they
+# reuse D's control map and screen outline. Backdrops differ (white, sky blue,
+# navy, black), so the backdrop colour is read from the corners.
+D_BOX = FRAMES["d"]["box"]
+AVIARY = ["raven", "owl", "mockingbird", "phoenix"]
+AVIARY_BOX = tuple(round(v) for v in (
+    (D_BOX[0] - 7) * 0.972, (D_BOX[1] + 30) * 0.972, (D_BOX[2] - 7) * 0.972, (D_BOX[3] + 30) * 0.972,
+))
+
+
+# Skin-unit areas holding the player itself (body + volume dial), never cleared.
+PLAYER_AREAS = [("box", 160, 285, 545, 760), ("circle", 592, 490, 104)]
+
+
+def cut_on_backdrop(path, box, size, tol=48, pockets=False):
+    rgb = np.asarray(Image.open(path).convert("RGB")).astype(np.int16)
+    h, w = rgb.shape[:2]
+    corners = np.array([rgb[4, 4], rgb[4, w - 5], rgb[h - 5, 4], rgb[h - 5, w - 5]])
+    bg = np.median(corners, axis=0)
+    near = np.sqrt(((rgb - bg) ** 2).sum(-1)) < tol
+    labels, _ = ndimage.label(near)
+    edge = np.unique(np.concatenate([labels[0], labels[-1], labels[:, 0], labels[:, -1]]))
+    fg = ~np.isin(labels, edge[edge > 0])
+    fg = ndimage.binary_opening(fg, iterations=2)
+    labels, n = ndimage.label(fg)
+    sizes = ndimage.sum(fg, labels, range(1, n + 1))
+    bird = ndimage.binary_fill_holes(labels == (int(np.argmax(sizes)) + 1))
+    # Light backdrops leave a pale fringe in the anti-aliased edge; trim it.
+    bird = ndimage.binary_erosion(bird, iterations=3 if bg.mean() > 100 else 1)
+    if pockets:
+        # Backdrop also showing *inside* the outline (between wings and head):
+        # clear big near-backdrop pockets, but never in the player.
+        k = (box[2] - box[0]) / (size[0] / 2)  # source px per skin unit
+        yy, xx = np.mgrid[0:h, 0:w]
+        ux, uy = (xx - box[0]) / k, (yy - box[1]) / k
+        safe = np.zeros((h, w), bool)
+        for area in PLAYER_AREAS:
+            if area[0] == "box":
+                safe |= (ux >= area[1]) & (uy >= area[2]) & (ux <= area[3]) & (uy <= area[4])
+            else:
+                safe |= (ux - area[1]) ** 2 + (uy - area[2]) ** 2 <= area[3] ** 2
+        dark = (np.sqrt(((rgb - bg) ** 2).sum(-1)) < tol * 0.6) & bird & ~safe
+        dark = ndimage.binary_opening(dark, iterations=2)
+        labels, n = ndimage.label(dark)
+        if n:
+            sizes = ndimage.sum(dark, labels, range(1, n + 1))
+            big = np.isin(labels, np.nonzero(sizes > 1500)[0] + 1)
+            bird &= ~ndimage.binary_dilation(big, iterations=1)
+    alpha = Image.fromarray((bird * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(0.9))
+    img = Image.open(path).convert("RGBA")
+    img.putalpha(alpha)
+    ys, xs = np.nonzero(bird)
+    inside = xs.min() >= box[0] and ys.min() >= box[1] and xs.max() < box[2] and ys.max() < box[3]
+    return img.crop(box).resize(size, Image.LANCZOS), inside
+
+
 if __name__ == "__main__":
+    for name in AVIARY:
+        src = ROOT / f"docs/design/bird-{name}.jpg"
+        img, inside = cut_on_backdrop(src, AVIARY_BOX, FRAMES["d"]["size"], pockets=name == "phoenix")
+        dest = OUT / f"bird-{name}.webp"
+        img.save(dest, "WEBP", quality=88, method=6)
+        note = "" if inside else "  (NOTE: bird reaches past the frame; edges trimmed)"
+        print(f"{dest.relative_to(ROOT)}  {img.width}x{img.height}  {dest.stat().st_size // 1024} KB{note}")
+
     OUT.mkdir(parents=True, exist_ok=True)
     for key, src in SOURCES.items():
         frame = FRAMES.get(key)

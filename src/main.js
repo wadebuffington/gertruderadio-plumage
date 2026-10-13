@@ -198,6 +198,15 @@ function start() {
       stage.requestFullscreen?.();
     },
   });
+  // One radio per bird in the Aviary.
+  $(".shaped-pick").append(
+    ...SHAPED_SKINS.map((skin) => {
+      const label = document.createElement("label");
+      const input = Object.assign(document.createElement("input"), { type: "radio", name: "shaped-skin", value: skin.id });
+      label.append(input, ` ${skin.name}`);
+      return label;
+    }),
+  );
   const shapedPick = document.querySelectorAll('input[name="shaped-skin"]');
   // Small per-browser preferences; if storage is blocked we just use defaults.
   const pref = {

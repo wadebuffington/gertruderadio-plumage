@@ -45,6 +45,7 @@ function actions({ player, visuals, presets, openFiles, say, screen, fullscreen 
     forward: { label: () => "Fast-forward 10 seconds", run: () => player.skip(10), enabled: needsTracks },
     shuffle: { label: () => "Shuffle", pressed: (s) => s.shuffle, run: () => player.toggleShuffle() },
     repeat: { label: () => "Repeat", pressed: (s) => s.repeat, run: () => player.toggleRepeat() },
+    mute: { label: () => "Mute", pressed: (s) => s.volume === 0, run: () => player.toggleMute() },
     open: { label: () => "Open files…", run: () => openFiles() },
     nextPreset: { label: () => "Next visual preset", run: () => visuals.nextPreset() },
     // Say where the arrow goes, e.g. "Next page: Up next".
@@ -171,6 +172,8 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
         // A finished button picture (Eddie's art) instead of a drawn cap + icon.
         // `images` gives one per state, e.g. {play, pause} for the play button.
         face.classList.add("is-image");
+        // No painted socket under this button: draw a dark rim like its neighbours'.
+        if (c.face.socket) face.classList.add("has-socket");
         faceImg = face.appendChild(document.createElement("img"));
         faceImg.src = c.face.image ?? Object.values(c.face.images)[0];
         faceImg.alt = "";

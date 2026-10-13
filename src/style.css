@@ -870,6 +870,25 @@ body {
 .sh-face.is-image::before {
   display: none;
 }
+.sh-face.has-socket {
+  box-shadow:
+    0 0 0 3px #1c0507,
+    0 0 0 4.5px rgb(255 255 255 / 0.14),
+    0 3px 6px 4px rgb(0 0 0 / 0.45);
+}
+/* muted: a slash through the speaker (not colour alone) */
+.sh-mute[aria-pressed="true"] .sh-face::after {
+  content: "";
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: 50%;
+  height: 9%;
+  border-radius: 99px;
+  background: #ffd9a8;
+  box-shadow: 0 0 0 1.5px #3a0a0a, 0 0 6px #ffb347;
+  transform: rotate(-45deg);
+}
 .sh-face.is-image img {
   display: block;
   width: 100%;

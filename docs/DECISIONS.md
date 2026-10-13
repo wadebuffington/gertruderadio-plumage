@@ -156,3 +156,11 @@ Small decisions made during the build that the brief did not cover. Newest at th
   shifted ~6 units right and the top row a few units, which made the dark rims look uneven. Faces now
   sized to fill each painted socket. The big centre play button is now a **glass dome** (see-through
   red, top shine, a glint, warm under-glow) with a larger icon; Eddie likes it.
+- 2026-10-13 — **The Aviary**: Eddie's raven, barn owl, mockingbird and phoenix (`docs/design/bird-*.jpg`)
+  share concept D's player at the same framing (0.972x, offset -7/+30 px), so they reuse the "Perched"
+  control map. Cut-outs read each backdrop colour from the corners; pale backdrops get a 3px edge trim
+  (no white fringe); the phoenix also has interior black pockets cleared, with the player area protected.
+  The bird picker is now built from `SHAPED_SKINS`. Concept D is labelled "Cardinal", concept A
+  "Flight Form (cardinal, wings up)".
+- **Mute button** (Eddie's speaker picture) left of rewind on the Perched layout: toggles volume to 0 and
+  back to the previous level; shows a teal ring + a slash when muted; drawn socket since the art has none.

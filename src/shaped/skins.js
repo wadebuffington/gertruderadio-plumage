@@ -22,43 +22,56 @@
 // `action` says what it does (see src/shaped/shaped.js). Prototype art: Eddie's
 // cardinal concepts A and D, cut out by tools/shaped/cutout.py.
 
+// The "Perched" layout: Eddie's cardinal concept D. His Aviary birds share the
+// same player and framing (tools/shaped/cutout.py), so they share this map.
+const PERCHED = [
+    { type: "button", action: "previous", x: 259, y: 315, r: 22, face: { r: 18.5, image: "./shaped/button-previous.webp" } },
+    { type: "button", action: "shuffle", x: 314, y: 315, r: 22, face: { r: 18.5, image: "./shaped/button-shuffle.webp" } },
+    { type: "button", action: "next", x: 368, y: 315, r: 22, face: { r: 18.5, image: "./shaped/button-next.webp" } },
+    { type: "button", action: "repeat", x: 421, y: 315, r: 22, face: { r: 18.5, image: "./shaped/button-repeat.webp" } },
+    { type: "screen", kind: "pages", x: 168.5, y: 361.5, w: 334, h: 243.5, mask: "./shaped/concept-d-screen.png" },
+    { type: "button", action: "screenPrev", x: 192, y: 386, r: 12, face: { r: 11, icon: "left", from: "#2a0a0b", to: "#0e0304" } },
+    { type: "button", action: "screenNext", x: 428, y: 386, r: 12, face: { r: 11, icon: "right", from: "#2a0a0b", to: "#0e0304" } },
+    { type: "button", action: "visualPrev", page: "visuals", x: 192, y: 582, r: 12, face: { r: 11, icon: "left", from: "#2a0a0b", to: "#0e0304" } },
+    { type: "button", action: "visualNext", page: "visuals", x: 430, y: 582, r: 12, face: { r: 11, icon: "right", from: "#2a0a0b", to: "#0e0304" } },
+    { type: "button", action: "fullscreen", page: "visuals", x: 472, y: 582, r: 12, face: { r: 11, icon: "full", from: "#2a0a0b", to: "#0e0304" } },
+    { type: "slider", action: "seek", x1: 196, y1: 628, x2: 478, y2: 628, w: 20 },
+    { type: "button", action: "open", x: 537, y: 628, r: 19, face: { r: 15, image: "./shaped/button-open.webp" } },
+    {
+      type: "knob", action: "volume", x: 592, y: 490, r: 100, ring: 66,
+      slots: { inner: 69, outer: 91, r: 80, count: 21, len: 12, width: 4.5 },
+    },
+    { type: "button", action: "togglePlay", x: 592, y: 490, r: 46, face: { r: 38, glass: true, from: "#d23a34", to: "#4e0a10" } },
+    { type: "button", action: "mute", x: 215, y: 670, r: 19, face: { r: 15.5, image: "./shaped/button-volume.webp", socket: true } },
+    { type: "button", action: "rewind", x: 269, y: 685.5, r: 26, face: { r: 21, image: "./shaped/button-rewind.webp" } },
+    {
+      type: "button", action: "togglePlay", x: 344, y: 692, r: 33,
+      face: { r: 30.5, images: { play: "./shaped/button-play.webp", pause: "./shaped/button-pause.webp" } },
+    },
+    { type: "button", action: "forward", x: 418, y: 688.5, r: 26, face: { r: 21, image: "./shaped/button-forward.webp" } },
+    { type: "button", action: "stop", x: 481, y: 677, r: 18, face: { r: 15, image: "./shaped/button-stop.webp" } },
+  ];
+
+const aviary = (id, name) => ({
+  id, name, art: `./shaped/bird-${id}.webp`, width: 798, height: 978, controls: PERCHED,
+});
+
 export const SHAPED_SKINS = [
   {
     id: "d",
-    name: "Perched (concept D)",
+    name: "Cardinal",
     art: "./shaped/concept-d.webp",
     width: 798,
     height: 978,
-    controls: [
-      { type: "button", action: "previous", x: 259, y: 315, r: 22, face: { r: 18.5, image: "./shaped/button-previous.webp" } },
-      { type: "button", action: "shuffle", x: 314, y: 315, r: 22, face: { r: 18.5, image: "./shaped/button-shuffle.webp" } },
-      { type: "button", action: "next", x: 368, y: 315, r: 22, face: { r: 18.5, image: "./shaped/button-next.webp" } },
-      { type: "button", action: "repeat", x: 421, y: 315, r: 22, face: { r: 18.5, image: "./shaped/button-repeat.webp" } },
-      { type: "screen", kind: "pages", x: 168.5, y: 361.5, w: 334, h: 243.5, mask: "./shaped/concept-d-screen.png" },
-      { type: "button", action: "screenPrev", x: 192, y: 386, r: 12, face: { r: 11, icon: "left", from: "#2a0a0b", to: "#0e0304" } },
-      { type: "button", action: "screenNext", x: 428, y: 386, r: 12, face: { r: 11, icon: "right", from: "#2a0a0b", to: "#0e0304" } },
-      { type: "button", action: "visualPrev", page: "visuals", x: 192, y: 582, r: 12, face: { r: 11, icon: "left", from: "#2a0a0b", to: "#0e0304" } },
-      { type: "button", action: "visualNext", page: "visuals", x: 430, y: 582, r: 12, face: { r: 11, icon: "right", from: "#2a0a0b", to: "#0e0304" } },
-      { type: "button", action: "fullscreen", page: "visuals", x: 472, y: 582, r: 12, face: { r: 11, icon: "full", from: "#2a0a0b", to: "#0e0304" } },
-      { type: "slider", action: "seek", x1: 196, y1: 628, x2: 478, y2: 628, w: 20 },
-      { type: "button", action: "open", x: 537, y: 628, r: 19, face: { r: 15, image: "./shaped/button-open.webp" } },
-      {
-        type: "knob", action: "volume", x: 592, y: 490, r: 100, ring: 66,
-        slots: { inner: 69, outer: 91, r: 80, count: 21, len: 12, width: 4.5 },
-      },
-      { type: "button", action: "togglePlay", x: 592, y: 490, r: 46, face: { r: 38, glass: true, from: "#d23a34", to: "#4e0a10" } },
-      { type: "button", action: "rewind", x: 269, y: 685.5, r: 26, face: { r: 21, image: "./shaped/button-rewind.webp" } },
-      {
-        type: "button", action: "togglePlay", x: 344, y: 692, r: 33,
-        face: { r: 30.5, images: { play: "./shaped/button-play.webp", pause: "./shaped/button-pause.webp" } },
-      },
-      { type: "button", action: "forward", x: 418, y: 688.5, r: 26, face: { r: 21, image: "./shaped/button-forward.webp" } },
-      { type: "button", action: "stop", x: 481, y: 677, r: 18, face: { r: 15, image: "./shaped/button-stop.webp" } },
-    ],
+    controls: PERCHED,
   },
+  aviary("raven", "Raven"),
+  aviary("owl", "Barn owl"),
+  aviary("mockingbird", "Mockingbird"),
+  aviary("phoenix", "Phoenix"),
   {
     id: "a",
-    name: "Flight Form (concept A)",
+    name: "Flight Form (cardinal, wings up)",
     art: "./shaped/concept-a.webp",
     width: 888,
     height: 977,

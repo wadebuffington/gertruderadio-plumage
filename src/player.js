@@ -44,6 +44,7 @@ export function createPlayer({ doubleSize = false } = {}) {
   });
 
   const listeners = new Set();
+  let volumeBeforeMute = 0;
   let snapshot = readState();
 
   function readState() {
@@ -187,6 +188,15 @@ export function createPlayer({ doubleSize = false } = {}) {
     setBalance: (v) => webamp.store.dispatch({ type: "SET_BALANCE", balance: Math.max(-100, Math.min(100, Math.round(v))) }),
     toggleShuffle: () => webamp.toggleShuffle(),
     toggleRepeat: () => webamp.toggleRepeat(),
+    /** Mute on/off: remembers the volume so un-muting brings it back. */
+    toggleMute() {
+      if (snapshot.volume > 0) {
+        volumeBeforeMute = snapshot.volume;
+        webamp.setVolume(0);
+      } else {
+        webamp.setVolume(volumeBeforeMute || 75);
+      }
+    },
     playIndex(index) {
       webamp.setCurrentTrack(index);
       webamp.play();
