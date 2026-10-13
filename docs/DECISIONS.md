@@ -141,3 +141,7 @@ Small decisions made during the build that the brief did not cover. Newest at th
   with identical framing, so every control position still holds. The cut-out is pinned to the old
   frame and written at 2x for sharpness on high-density screens (`FRAMES` in tools/shaped/cutout.py).
   Its near-black face mask has a hint of blue, so very dark pixels are kept in the bird (`min_lum`).
+- 2026-10-13 — **First finished button art from Eddie**: the glowing "open files" button
+  (`docs/design/button-open.jpg`) now sits on D's open button. Button pictures are cut to a round
+  image by `tools/shaped/buttons.py` and placed with a skin control's `face.image`. Being a picture,
+  it keeps its own amber glow whatever screen colour is chosen.

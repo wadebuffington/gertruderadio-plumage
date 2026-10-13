@@ -11,7 +11,8 @@
 //   led     {x, y, r}              a light that glows for a state
 //
 // Extras: a button's `face` {r, from, to, icon} lays a live cap over the
-// painted face, so its icon can change (play ↔ pause) or be redrawn (stop ■).
+// painted face, so its icon can change (play ↔ pause) or be redrawn (stop ■);
+// `face.image` uses a finished button picture instead (tools/shaped/buttons.py).
 // A button with `page` only shows on that page of a paged screen. A screen's
 // `mask` is its glass outline (traced from the art by tools/shaped/cutout.py). A knob's `slots` paints a ring
 // of backlit slots between radii `inner` and `outer`, lit up to its value;
@@ -40,7 +41,7 @@ export const SHAPED_SKINS = [
       { type: "button", action: "visualNext", page: "visuals", x: 430, y: 582, r: 12, face: { r: 11, icon: "right", from: "#2a0a0b", to: "#0e0304" } },
       { type: "button", action: "fullscreen", page: "visuals", x: 472, y: 582, r: 12, face: { r: 11, icon: "full", from: "#2a0a0b", to: "#0e0304" } },
       { type: "slider", action: "seek", x1: 196, y1: 628, x2: 478, y2: 628, w: 20 },
-      { type: "button", action: "open", x: 537, y: 628, r: 19 },
+      { type: "button", action: "open", x: 537, y: 628, r: 19, face: { r: 15, image: "./shaped/button-open.webp" } },
       {
         type: "knob", action: "volume", x: 590, y: 492, r: 100, ring: 66,
         slots: { inner: 69, outer: 91, r: 80, count: 21, len: 12, width: 4.5 },

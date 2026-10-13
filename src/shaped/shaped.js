@@ -166,14 +166,22 @@ export function createShapedPlayer({ root, player, visuals, presets, openFiles, 
       face.className = "sh-face";
       face.setAttribute("aria-hidden", "true");
       face.style.width = `${(c.face.r / c.r) * 100}%`;
-      face.style.setProperty("--face-from", c.face.from);
-      face.style.setProperty("--face-to", c.face.to);
+      if (c.face.image) {
+        // A finished button picture (Eddie's art) instead of a drawn cap + icon.
+        face.classList.add("is-image");
+        const img = face.appendChild(document.createElement("img"));
+        img.src = c.face.image;
+        img.alt = "";
+      } else {
+        face.style.setProperty("--face-from", c.face.from);
+        face.style.setProperty("--face-to", c.face.to);
+      }
     }
     return {
       el,
       update(s) {
         if (c.page) el.hidden = PAGES[page].id !== c.page;
-        if (face) {
+        if (face && !c.face.image) {
           const icon = c.action === "togglePlay" ? (s.status === "PLAYING" ? "pause" : "play") : c.face.icon;
           if (face.dataset.icon !== icon) {
             face.dataset.icon = icon;
